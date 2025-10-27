@@ -1,0 +1,14 @@
+{
+  "name": "fullstack-challenge",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "turbo run dev --parallel"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.8",
+    "typescript": "^5.9.3",
+    "prettier": "^3.6.2"
+  }
+}
