@@ -16,6 +16,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@nestjs/mapped-types": "^2.1.0",
     "cookie-parser": "^1.4.7"
   }
 }
