@@ -9,9 +9,13 @@
     "dev": "turbo run dev --parallel"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
     "chokidar": "^4.0.3",
     "prettier": "^3.6.2",
     "turbo": "^2.5.8",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7"
   }
 }
