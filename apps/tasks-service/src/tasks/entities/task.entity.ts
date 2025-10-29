@@ -4,9 +4,10 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
+    OneToMany,
   } from 'typeorm';
   import { TaskPriority, TaskStatus } from '@fullstack-challenge/types';
-  
+  import { Comment } from '../../comments/entities/comment.entity';
   @Entity('tasks')
   export class Task {
     @PrimaryGeneratedColumn('uuid')
@@ -35,5 +36,10 @@ import {
   
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @OneToMany(() => Comment, (comment) => comment.task, {
+      cascade: true,
+    })
+    comments: Comment[];
   }
   
