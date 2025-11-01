@@ -1,0 +1,391 @@
+{
+  "info": {
+    "_postman_id": "fullstack-challenge-api",
+    "name": "Fullstack Challenge API",
+    "description": "API collection for testing the Fullstack Challenge microservices",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth Service",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3001/auth/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["auth", "health"]
+            }
+          },
+          "description": "Check if Auth Service is running"
+        },
+        {
+          "name": "Register New User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"username\": \"john_doe\",\n  \"password\": \"SecurePassword123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["auth", "register"]
+            }
+          },
+          "description": "Register a new user with email, username, and password"
+        },
+        {
+          "name": "Login with Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"SecurePassword123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["auth", "login"]
+            }
+          },
+          "description": "Login with email and password. Returns access token and sets refresh token in cookies."
+        },
+        {
+          "name": "Login with Username",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\",\n  \"password\": \"SecurePassword123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["auth", "login"]
+            }
+          },
+          "description": "Login with username and password instead of email"
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3001/auth/refresh",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["auth", "refresh"]
+            }
+          },
+          "description": "Refresh the access token using the refresh token from cookies"
+        },
+        {
+          "name": "Get Current User (Protected)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_ACCESS_TOKEN_HERE",
+                "description": "Replace with actual access token from login response"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3001/auth/me",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["auth", "me"]
+            }
+          },
+          "description": "Get the current authenticated user's profile. Requires valid JWT token in Authorization header."
+        }
+      ]
+    },
+    {
+      "name": "Tasks Service",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3002/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3002",
+              "path": ["health"]
+            }
+          },
+          "description": "Check if Tasks Service is running"
+        },
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_ACCESS_TOKEN_HERE",
+                "description": "Replace with actual access token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Implement authentication\",\n  \"description\": \"Setup JWT auth with register and login endpoints\",\n  \"priority\": \"HIGH\",\n  \"status\": \"IN_PROGRESS\",\n  \"dueDate\": \"2024-12-01T00:00:00Z\",\n  \"assignees\": []\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3002/tasks",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3002",
+              "path": ["tasks"]
+            }
+          },
+          "description": "Create a new task"
+        },
+        {
+          "name": "Get All Tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_ACCESS_TOKEN_HERE",
+                "description": "Replace with actual access token"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3002/tasks",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3002",
+              "path": ["tasks"]
+            }
+          },
+          "description": "Get all tasks for the current user"
+        },
+        {
+          "name": "Get Task by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_ACCESS_TOKEN_HERE",
+                "description": "Replace with actual access token"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3002/tasks/task-id-here",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3002",
+              "path": ["tasks", "task-id-here"]
+            }
+          },
+          "description": "Get a specific task by its ID"
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_ACCESS_TOKEN_HERE",
+                "description": "Replace with actual access token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated task title\",\n  \"status\": \"DONE\",\n  \"priority\": \"MEDIUM\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3002/tasks/task-id-here",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3002",
+              "path": ["tasks", "task-id-here"]
+            }
+          },
+          "description": "Update a task"
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_ACCESS_TOKEN_HERE",
+                "description": "Replace with actual access token"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3002/tasks/task-id-here",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3002",
+              "path": ["tasks", "task-id-here"]
+            }
+          },
+          "description": "Delete a task"
+        },
+        {
+          "name": "Create Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_ACCESS_TOKEN_HERE",
+                "description": "Replace with actual access token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"This is a comment on the task\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3002/tasks/task-id-here/comments",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3002",
+              "path": ["tasks", "task-id-here", "comments"]
+            }
+          },
+          "description": "Add a comment to a task"
+        },
+        {
+          "name": "Get Task Comments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_ACCESS_TOKEN_HERE",
+                "description": "Replace with actual access token"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:3002/tasks/task-id-here/comments",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3002",
+              "path": ["tasks", "task-id-here", "comments"]
+            }
+          },
+          "description": "Get all comments for a specific task"
+        }
+      ]
+    },
+    {
+      "name": "API Gateway",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["health"]
+            }
+          },
+          "description": "Check if API Gateway is running"
+        }
+      ]
+    },
+    {
+      "name": "Notifications Service",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3003/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3003",
+              "path": ["health"]
+            }
+          },
+          "description": "Check if Notifications Service is running"
+        },
+        {
+          "name": "WebSocket Connection",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "ws://localhost:3003/socket.io/?token=YOUR_ACCESS_TOKEN_HERE",
+              "protocol": "ws",
+              "host": ["localhost"],
+              "port": "3003",
+              "path": ["socket.io/"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "YOUR_ACCESS_TOKEN_HERE",
+                  "description": "Replace with actual access token"
+                }
+              ]
+            }
+          },
+          "description": "Connect to WebSocket for real-time notifications"
+        }
+      ]
+    }
+  ]
+}
