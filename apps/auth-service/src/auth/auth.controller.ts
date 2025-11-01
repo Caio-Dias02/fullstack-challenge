@@ -11,9 +11,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
-import { RegisterDto } from '@fullstack-challenge/types/auth/register.dto';
-import { LoginDto } from '@fullstack-challenge/types/auth/login.dto';
-import { AuthenticatedRequest, CookieRequest } from '../types/request';
+import { RegisterDto, LoginDto, AuthenticatedRequest, CookieRequest } from '@fullstack-challenge/types';
 
 @Controller('auth')
 export class AuthController {

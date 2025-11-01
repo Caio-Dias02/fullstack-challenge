@@ -1,8 +1,11 @@
 import { Request } from 'express';
-import { UserResponse } from '@fullstack-challenge/types/auth/jwt-payload';
 
 export interface AuthenticatedRequest extends Request {
-  user: UserResponse;
+  user: {
+    userId: string;
+    email: string;
+    username: string;
+  };
 }
 
 export interface CookieRequest extends Request {
