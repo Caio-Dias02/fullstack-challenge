@@ -1,5 +1,5 @@
 // Common (Request interfaces, user types)
-export * from './common/authenticated-request';
+export * from './auth/authenticated-request';
 
 // Auth (DTOs, JWT types)
 export * from './auth/login.dto';
