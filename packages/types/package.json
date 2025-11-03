@@ -1,0 +1,10 @@
+{
+  "name": "@fullstack-challenge/types",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "class-validator": "^0.14.2",
+    "class-transformer": "^0.5.1"
+  }
+}
+

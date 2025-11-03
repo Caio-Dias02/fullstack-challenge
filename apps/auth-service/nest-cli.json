@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "entryFile": "apps/auth-service/src/main",
+  "compilerOptions": {
+    "deleteOutDir": false,
+    "assets": [],
+    "watchAssets": false
+  }
+}

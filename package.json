@@ -1,0 +1,16 @@
+{
+  "name": "fullstack-challenge",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:auth": "pnpm --filter @fullstack-challenge/auth-service start:dev",
+    "dev:tasks": "pnpm --filter @fullstack-challenge/tasks-service start:dev",
+    "dev:api": "pnpm --filter @fullstack-challenge/api-gateway start:dev",
+    "dev:notifications": "pnpm --filter @fullstack-challenge/notifications-service start:dev"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.3",
+    "typescript": "^5.7.3"
+  }
+}
+

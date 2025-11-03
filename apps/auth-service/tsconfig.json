@@ -1,0 +1,35 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "isolatedModules": false,
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "../../dist/apps/auth-service",
+    "rootDir": "../..",
+    "baseUrl": "./",
+    "incremental": true,
+    "paths": {
+      "@fullstack-challenge/types": ["../../packages/types"],
+      "@fullstack-challenge/types/*": ["../../packages/types/*"]
+    },
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false
+  },
+  "include": [
+    "src/**/*.ts",
+    "../../packages/types/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}
