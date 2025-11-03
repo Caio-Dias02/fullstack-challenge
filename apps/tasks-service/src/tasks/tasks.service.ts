@@ -3,12 +3,14 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Task } from "./entities/task.entity";
 import { CreateTaskDto, UpdateTaskDto } from "@fullstack-challenge/types";
+import { TaskHistoryService } from "src/task-history/task-history.service";
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task)
-    private readonly taskRepo: Repository<Task>
+    private readonly taskRepo: Repository<Task>,
+    private readonly taskHistoryService: TaskHistoryService
   ) {}
 
   create(dto: CreateTaskDto) {
@@ -28,8 +30,25 @@ export class TasksService {
 
   async update(id: string, dto: UpdateTaskDto) {
     const task = await this.findOne(id);
+    const before = { ...task };
+
     Object.assign(task, dto);
-    return this.taskRepo.save(task);
+    const updated = await this.taskRepo.save(task);
+
+    // gera histórico das mudanças
+    for (const key of Object.keys(dto)) {
+      if (before[key] !== dto[key]) {
+        await this.taskHistoryService.registerChange(
+          task.id,
+          "system",
+          key,
+          before[key],
+          dto[key]
+        );
+      }
+    }
+
+    return updated;
   }
 
   async remove(id: string) {
