@@ -27,4 +27,12 @@ export class TaskHistoryService {
 
     await this.historyRepo.save(history);
   }
+
+  async findByTask(taskId: string) {
+    return this.historyRepo.find({
+      where: { task: { id: taskId } },
+      order: { createdAt: 'DESC' },
+    });
+  }
+  
 }
