@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: 'apps/auth-service/.env',
+      envFilePath: 'apps/tasks-service/.env',
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -15,11 +15,11 @@ import { AuthModule } from './auth/auth.module';
       port: +(process.env.DB_PORT || 5432),
       username: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASS || 'postgres',
-      database: process.env.DB_NAME || 'auth_db',
+      database: process.env.DB_NAME || 'tasks_db',
       autoLoadEntities: true,
       synchronize: true,
     }),
-    AuthModule,
+    TasksModule,
   ],
 })
 export class AppModule {}
