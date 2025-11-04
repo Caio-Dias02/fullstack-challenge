@@ -1,8 +1,10 @@
 import { Controller, Post, Body, Res, Req } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import type { Response, Request } from 'express';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   private readonly authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
@@ -10,6 +12,22 @@ export class AuthController {
   constructor(private readonly httpService: HttpService) {}
 
   @Post('register')
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiBody({
+    description: 'User registration data',
+    schema: {
+      type: 'object',
+      properties: {
+        email: { type: 'string', example: 'user@example.com' },
+        username: { type: 'string', example: 'username' },
+        password: { type: 'string', example: 'password123' },
+      },
+      required: ['email', 'username', 'password'],
+    },
+  })
+  @ApiResponse({ status: 201, description: 'User registered successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  @ApiResponse({ status: 409, description: 'Email or username already exists' })
   async register(@Body() registerDto: any) {
     const response = await firstValueFrom(
       this.httpService.post(`${this.authServiceUrl}/auth/register`, registerDto)
@@ -18,6 +36,20 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiOperation({ summary: 'Login with email or username' })
+  @ApiBody({
+    description: 'User login credentials',
+    schema: {
+      type: 'object',
+      properties: {
+        email: { type: 'string', example: 'user@example.com' },
+        password: { type: 'string', example: 'password123' },
+      },
+      required: ['email', 'password'],
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Login successful, tokens in cookies' })
+  @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(
     @Body() loginDto: any,
     @Res({ passthrough: true }) res: Response
@@ -41,6 +73,9 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiResponse({ status: 200, description: 'New access token generated' })
+  @ApiResponse({ status: 401, description: 'Refresh token invalid or expired' })
   async refresh(@Req() req: Request) {
     const response = await firstValueFrom(
       this.httpService.post(
