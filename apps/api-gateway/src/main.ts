@@ -5,7 +5,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: 'http://localhost:3001', // front ou swagger
+    origin: 'http://localhost:3001', // ou a URL do front
     credentials: true,
   });
 
