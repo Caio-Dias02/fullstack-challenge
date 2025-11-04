@@ -1,25 +1,30 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { ClientProxy, ClientProxyFactory, Transport } from '@nestjs/microservices';
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import * as amqp from 'amqplib';
 
 @Injectable()
-export class EventsService implements OnModuleInit {
-  private client: ClientProxy;
+export class EventsService implements OnModuleInit, OnModuleDestroy {
+  private connection: any;
+  private channel: any;
 
-  onModuleInit() {
-    this.client = ClientProxyFactory.create({
-      transport: Transport.RMQ,
-      options: {
-        urls: [process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672'],
-        exchange: 'tasks.events',
-        exchangeType: 'topic',
-        queue: 'tasks_events_queue',
-        queueOptions: { durable: true },
-        persistent: true,
-      },
-    });
+  constructor(private configService: ConfigService) {}
+
+  async onModuleInit() {
+    try {
+      const rabbitmqUrl = this.configService.get('RABBITMQ_URL') || 'amqp://guest:guest@localhost:5672';
+      this.connection = await amqp.connect(rabbitmqUrl);
+      this.channel = await this.connection.createChannel();
+
+      // Declare exchange
+      await this.channel.assertExchange('tasks.events', 'topic', { durable: true });
+      console.log('✅ RabbitMQ publisher initialized');
+    } catch (error) {
+      console.error('❌ Failed to initialize RabbitMQ publisher:', error);
+      throw error;
+    }
   }
 
-  publishTaskCreated(task: any) {
+  async publishTaskCreated(task: any) {
     const payload = {
       event: 'task:created',
       taskId: task.id,
@@ -29,10 +34,14 @@ export class EventsService implements OnModuleInit {
       timestamp: new Date().toISOString(),
     };
     console.log('📤 Publishing task.created event:', payload);
-    this.client.emit('task.created', payload);
+    this.channel.publish(
+      'tasks.events',
+      'task.created',
+      Buffer.from(JSON.stringify(payload))
+    );
   }
 
-  publishTaskUpdated(taskId: string, changes: any, userId: string) {
+  async publishTaskUpdated(taskId: string, changes: any, userId: string) {
     const payload = {
       event: 'task:updated',
       taskId,
@@ -41,10 +50,14 @@ export class EventsService implements OnModuleInit {
       timestamp: new Date().toISOString(),
     };
     console.log('📤 Publishing task.updated event:', payload);
-    this.client.emit('task.updated', payload);
+    this.channel.publish(
+      'tasks.events',
+      'task.updated',
+      Buffer.from(JSON.stringify(payload))
+    );
   }
 
-  publishCommentNew(comment: any, taskId: string) {
+  async publishCommentNew(comment: any, taskId: string) {
     const payload = {
       event: 'comment:new',
       commentId: comment.id,
@@ -54,6 +67,19 @@ export class EventsService implements OnModuleInit {
       timestamp: new Date().toISOString(),
     };
     console.log('📤 Publishing comment.new event:', payload);
-    this.client.emit('comment.new', payload);
+    this.channel.publish(
+      'tasks.events',
+      'comment.new',
+      Buffer.from(JSON.stringify(payload))
+    );
+  }
+
+  async onModuleDestroy() {
+    if (this.channel) {
+      await this.channel.close();
+    }
+    if (this.connection) {
+      await this.connection.close();
+    }
   }
 }
