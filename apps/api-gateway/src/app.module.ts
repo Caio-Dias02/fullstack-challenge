@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { HttpModule } from '@nestjs/axios';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TasksController } from './tasks/tasks.controller';
+import { AuthController } from './auth/auth.controller';
 
 @Module({
   imports: [
+    HttpModule,
     ClientsModule.register([
       {
         name: 'TASKS_SERVICE',
@@ -18,7 +21,7 @@ import { TasksController } from './tasks/tasks.controller';
       },
     ]),
   ],
-  controllers: [AppController, TasksController],
+  controllers: [AppController, TasksController, AuthController],
   providers: [AppService],
 })
 export class AppModule {}
