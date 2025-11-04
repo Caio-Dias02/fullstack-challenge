@@ -4,12 +4,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TasksModule } from './tasks/tasks.module';
 import { TaskHistoryModule } from './task-history/task-history.module';
 import { CommentsModule } from './comments/comments.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: 'apps/tasks-service/.env',
+      envFilePath: '.env',
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -21,6 +22,7 @@ import { CommentsModule } from './comments/comments.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    EventsModule,
     TasksModule,
     TaskHistoryModule,
     CommentsModule,

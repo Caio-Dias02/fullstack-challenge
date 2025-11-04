@@ -1,5 +1,5 @@
 import { TaskHistory } from '../../task-history/entities/task-history.entity';
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Comment } from '../../comments/entities/comment.entity';
 
 
@@ -20,8 +20,20 @@ export class Task {
   @Column({ default: 'medium' })
   priority!: string;
 
+  @Column({ nullable: true })
+  dueDate?: Date;
+
+  @Column({ type: 'uuid', nullable: true })
+  creatorId?: string;
+
+  @Column('uuid', { array: true, default: () => "'{}'", nullable: true })
+  assignees?: string[];
+
   @CreateDateColumn()
   createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
 
   @OneToMany(() => Comment, (comment) => comment.task)
   comments: Comment[];

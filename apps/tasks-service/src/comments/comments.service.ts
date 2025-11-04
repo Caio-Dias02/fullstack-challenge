@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Comment } from './entities/comment.entity';
 import { Task } from '../tasks/entities/task.entity';
 import { CreateCommentDto } from '@fullstack-challenge/types/comments/dto/create-comment.dto';
+import { EventsService } from '../events/events.service';
 
 @Injectable()
 export class CommentsService {
@@ -13,6 +14,8 @@ export class CommentsService {
 
     @InjectRepository(Task)
     private readonly taskRepo: Repository<Task>,
+
+    private readonly eventsService: EventsService,
   ) {}
 
   async create(dto: CreateCommentDto) {
@@ -25,7 +28,12 @@ export class CommentsService {
       task,
     });
 
-    return this.commentRepo.save(comment);
+    const saved = await this.commentRepo.save(comment);
+
+    // Publish event
+    this.eventsService.publishCommentNew(saved, dto.taskId);
+
+    return saved;
   }
 
   async findByTask(taskId: string) {

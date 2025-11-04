@@ -4,18 +4,25 @@ import { Repository } from "typeorm";
 import { Task } from "./entities/task.entity";
 import { CreateTaskDto, UpdateTaskDto } from "@fullstack-challenge/types";
 import { TaskHistoryService } from "../task-history/task-history.service";
+import { EventsService } from "../events/events.service";
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task)
     private readonly taskRepo: Repository<Task>,
-    private readonly taskHistoryService: TaskHistoryService
+    private readonly taskHistoryService: TaskHistoryService,
+    private readonly eventsService: EventsService
   ) {}
 
-  create(dto: CreateTaskDto) {
+  async create(dto: CreateTaskDto) {
     const task = this.taskRepo.create(dto);
-    return this.taskRepo.save(task);
+    const saved = await this.taskRepo.save(task);
+
+    // Publish event
+    this.eventsService.publishTaskCreated(saved);
+
+    return saved;
   }
 
   findAll() {
@@ -28,7 +35,7 @@ export class TasksService {
     return task;
   }
 
-  async update(id: string, dto: UpdateTaskDto) {
+  async update(id: string, dto: UpdateTaskDto, userId?: string) {
     const task = await this.findOne(id);
     const before = { ...task };
 
@@ -36,16 +43,23 @@ export class TasksService {
     const updated = await this.taskRepo.save(task);
 
     // gera histórico das mudanças
+    const changes: any = {};
     for (const key of Object.keys(dto)) {
       if (before[key] !== dto[key]) {
+        changes[key] = { old: before[key], new: dto[key] };
         await this.taskHistoryService.registerChange(
           task.id,
-          "system",
+          userId || "system",
           key,
           before[key],
           dto[key]
         );
       }
+    }
+
+    // Publish event only if there were changes
+    if (Object.keys(changes).length > 0) {
+      this.eventsService.publishTaskUpdated(id, changes, userId || "system");
     }
 
     return updated;

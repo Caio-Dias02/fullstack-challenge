@@ -39,8 +39,8 @@ export class TasksController {
   @ApiResponse({ status: 400, description: 'Invalid input' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   create(@Body() dto: CreateTaskDto, @Req() req: any) {
-    const authorId = req.user.sub; // 👈 extraído do token
-    return this.client.send({ cmd: 'create_task' }, { ...dto, authorId });
+    const creatorId = req.user.sub; // 👈 extraído do token
+    return this.client.send({ cmd: 'create_task' }, { ...dto, creatorId });
   }
 
   @UseGuards(JwtAuthGuard)
