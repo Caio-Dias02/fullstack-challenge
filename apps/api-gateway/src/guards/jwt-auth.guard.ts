@@ -7,18 +7,27 @@ export class JwtAuthGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const req = context.switchToHttp().getRequest();
-    const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Tenta pegar do cookie primeiro (HTTP-only)
+    let token = req.cookies?.accessToken;
+
+    // Fallback: tenta header Authorization (Bearer token)
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+      }
+    }
+
+    if (!token) {
       throw new UnauthorizedException('Token ausente ou inválido');
     }
 
-    const token = authHeader.split(' ')[1];
     try {
       const payload = this.jwtService.verify(token);
       req.user = payload;
       return true;
-    } catch {
+    } catch (err: any) {
       throw new UnauthorizedException('Token inválido ou expirado');
     }
   }

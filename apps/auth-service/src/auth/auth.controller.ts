@@ -27,7 +27,7 @@ export class AuthController {
 
     return {
       message: 'Login successful',
-      accessToken,
+      accessToken, // Gateway precisa disso para criar seu cookie
       user: { id: user.id, email: user.email, username: user.username },
     };
   }

@@ -20,28 +20,28 @@ export class TasksController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Req() req) {
+  findAll(@Req() req: any) {
     console.log('Usuário autenticado:', req.user);
     return this.client.send({ cmd: 'get_tasks' }, {});
   }
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreateTaskDto, @Req() req) {
+  create(@Body() dto: CreateTaskDto, @Req() req: any) {
     const authorId = req.user.sub; // 👈 extraído do token
     return this.client.send({ cmd: 'create_task' }, { ...dto, authorId });
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateTaskDto, @Req() req) {
+  update(@Param('id') id: string, @Body() dto: UpdateTaskDto, @Req() req: any) {
     const userId = req.user.sub;
     return this.client.send({ cmd: 'update_task' }, { id, dto, userId });
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string, @Req() req) {
+  remove(@Param('id') id: string, @Req() req: any) {
     const userId = req.user.sub;
     return this.client.send({ cmd: 'delete_task' }, { id, userId });
   }

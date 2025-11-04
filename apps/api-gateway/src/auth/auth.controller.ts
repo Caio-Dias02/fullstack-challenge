@@ -26,10 +26,15 @@ export class AuthController {
       this.httpService.post(`${this.authServiceUrl}/auth/login`, loginDto)
     );
 
-    // Forward cookies from auth-service response
-    const cookies = response.headers['set-cookie'];
-    if (cookies) {
-      cookies.forEach(cookie => res.setHeader('Set-Cookie', cookie));
+    const { accessToken } = response.data;
+
+    // Set cookies no gateway
+    if (accessToken) {
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 15 * 60 * 1000, // 15 min
+      });
     }
 
     return response.data;
