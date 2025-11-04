@@ -1,6 +1,6 @@
-import { TaskHistory } from 'src/task-history/entities/task-history.entity';
+import { TaskHistory } from '../../task-history/entities/task-history.entity';
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
-import { Comment } from 'src/comments/entities/comment.entity';
+import { Comment } from '../../comments/entities/comment.entity';
 
 
 @Entity('tasks')

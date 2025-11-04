@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Task } from "./entities/task.entity";
 import { CreateTaskDto, UpdateTaskDto } from "@fullstack-challenge/types";
-import { TaskHistoryService } from "src/task-history/task-history.service";
+import { TaskHistoryService } from "../task-history/task-history.service";
 
 @Injectable()
 export class TasksService {
