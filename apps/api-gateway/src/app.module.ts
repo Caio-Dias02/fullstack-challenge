@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TasksController } from './tasks/tasks.controller';
+import { CommentsController } from './tasks/comments.controller';
 import { AuthController } from './auth/auth.controller';
 
 @Module({
@@ -22,7 +23,7 @@ import { AuthController } from './auth/auth.controller';
       }),
     }),
   ],
-  controllers: [AppController, TasksController, AuthController],
+  controllers: [AppController, TasksController, CommentsController, AuthController],
   providers: [AppService],
 })
 export class AppModule {}

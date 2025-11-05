@@ -22,6 +22,13 @@ export class CommentsService {
     const task = await this.taskRepo.findOne({ where: { id: dto.taskId } });
     if (!task) throw new NotFoundException('Task not found');
 
+    // Validar autorização: só creator e assignees podem comentar
+    const isCreator = task.creatorId === dto.authorId;
+    const isAssignee = task.assignees?.includes(dto.authorId);
+    if (!isCreator && !isAssignee) {
+      throw new NotFoundException('Task not found or unauthorized');
+    }
+
     const comment = this.commentRepo.create({
       body: dto.body,
       authorId: dto.authorId,

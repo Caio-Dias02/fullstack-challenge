@@ -37,6 +37,14 @@ export class TasksService {
 
   async update(id: string, dto: UpdateTaskDto, userId?: string) {
     const task = await this.findOne(id);
+
+    // Autorização: creator ou assignees podem editar
+    const isCreator = task.creatorId === userId;
+    const isAssignee = task.assignees?.includes(userId);
+    if (!isCreator && !isAssignee) {
+      throw new NotFoundException("Task not found or unauthorized");
+    }
+
     const before = { ...task };
 
     Object.assign(task, dto);
@@ -65,10 +73,15 @@ export class TasksService {
     return updated;
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId?: string) {
     const task = await this.findOne(id);
-    if (!task) throw new NotFoundException("Task not found");
+
+    // Só creator pode deletar
+    if (!userId || task.creatorId !== userId) {
+      throw new NotFoundException("Task not found or unauthorized");
+    }
+
     await this.taskRepo.delete(task.id);
-    return { message: "Task deleted successfully" };
+    return { message: "Task deleted successfully", id: task.id };
   }
 }

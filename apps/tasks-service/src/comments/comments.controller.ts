@@ -1,4 +1,5 @@
 import { Controller, Post, Get, Body, Param } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from '@fullstack-challenge/types';
 
@@ -14,5 +15,16 @@ export class CommentsController {
   @Get()
   findByTask(@Param('taskId') taskId: string) {
     return this.commentsService.findByTask(taskId);
+  }
+
+  // Message patterns pra API Gateway (RabbitMQ)
+  @MessagePattern({ cmd: 'create_comment' })
+  createComment(@Payload() dto: CreateCommentDto) {
+    return this.commentsService.create(dto);
+  }
+
+  @MessagePattern({ cmd: 'get_comments' })
+  getComments(@Payload() data: { taskId: string }) {
+    return this.commentsService.findByTask(data.taskId);
   }
 }

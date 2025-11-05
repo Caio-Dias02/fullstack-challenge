@@ -11,8 +11,8 @@ async function bootstrap() {
     transport: Transport.RMQ,
     options: {
       urls: [process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672'],
-      queue: process.env.RABBITMQ_TASKS_QUEUE || 'tasks_queue',
-      queueOptions: { durable: false },
+      queue: process.env.RABBITMQ_TASKS_QUEUE || 'task_commands',
+      queueOptions: { durable: true },
     },
   });
 

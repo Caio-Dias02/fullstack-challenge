@@ -25,53 +25,65 @@ export class EventsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async publishTaskCreated(task: any) {
-    const payload = {
-      event: 'task:created',
-      taskId: task.id,
-      title: task.title,
-      assignees: task.assignees || [],
-      createdBy: task.creatorId,
-      timestamp: new Date().toISOString(),
-    };
-    console.log('📤 Publishing task.created event:', payload);
-    this.channel.publish(
-      'tasks.events',
-      'task.created',
-      Buffer.from(JSON.stringify(payload))
-    );
+    try {
+      const payload = {
+        event: 'task:created',
+        taskId: task.id,
+        title: task.title,
+        assignees: task.assignees || [],
+        createdBy: task.creatorId,
+        timestamp: new Date().toISOString(),
+      };
+      console.log('📤 Publishing task.created event:', payload);
+      await this.channel.publish(
+        'tasks.events',
+        'task.created',
+        Buffer.from(JSON.stringify(payload))
+      );
+    } catch (error) {
+      console.error('❌ Failed to publish task.created event:', error);
+    }
   }
 
   async publishTaskUpdated(taskId: string, changes: any, userId: string) {
-    const payload = {
-      event: 'task:updated',
-      taskId,
-      changes,
-      updatedBy: userId,
-      timestamp: new Date().toISOString(),
-    };
-    console.log('📤 Publishing task.updated event:', payload);
-    this.channel.publish(
-      'tasks.events',
-      'task.updated',
-      Buffer.from(JSON.stringify(payload))
-    );
+    try {
+      const payload = {
+        event: 'task:updated',
+        taskId,
+        changes,
+        updatedBy: userId,
+        timestamp: new Date().toISOString(),
+      };
+      console.log('📤 Publishing task.updated event:', payload);
+      await this.channel.publish(
+        'tasks.events',
+        'task.updated',
+        Buffer.from(JSON.stringify(payload))
+      );
+    } catch (error) {
+      console.error('❌ Failed to publish task.updated event:', error);
+    }
   }
 
   async publishCommentNew(comment: any, taskId: string) {
-    const payload = {
-      event: 'comment:new',
-      commentId: comment.id,
-      taskId,
-      authorId: comment.authorId,
-      body: comment.body,
-      timestamp: new Date().toISOString(),
-    };
-    console.log('📤 Publishing comment.new event:', payload);
-    this.channel.publish(
-      'tasks.events',
-      'comment.new',
-      Buffer.from(JSON.stringify(payload))
-    );
+    try {
+      const payload = {
+        event: 'comment:new',
+        commentId: comment.id,
+        taskId,
+        authorId: comment.authorId,
+        body: comment.body,
+        timestamp: new Date().toISOString(),
+      };
+      console.log('📤 Publishing comment.new event:', payload);
+      await this.channel.publish(
+        'tasks.events',
+        'comment.new',
+        Buffer.from(JSON.stringify(payload))
+      );
+    } catch (error) {
+      console.error('❌ Failed to publish comment.new event:', error);
+    }
   }
 
   async onModuleDestroy() {

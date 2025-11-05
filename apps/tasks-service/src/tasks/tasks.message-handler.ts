@@ -26,9 +26,4 @@ export class TasksMessageHandler {
   async update(data: { id: string; dto: UpdateTaskDto; userId?: string }) {
     return this.tasksService.update(data.id, data.dto, data.userId);
   }
-
-  @MessagePattern({ cmd: 'delete_task' })
-  async remove({ id }: { id: string }) {
-    return this.tasksService.remove(id);
-  }
 }
