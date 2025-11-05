@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -15,8 +15,13 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
-    const exists = await this.userRepo.findOne({ where: { email: dto.email } });
-    if (exists) throw new UnauthorizedException('Email already registered');
+    // Check email duplicate
+    const emailExists = await this.userRepo.findOne({ where: { email: dto.email } });
+    if (emailExists) throw new ConflictException('Email already registered');
+
+    // Check username duplicate
+    const usernameExists = await this.userRepo.findOne({ where: { username: dto.username } });
+    if (usernameExists) throw new ConflictException('Username already registered');
 
     const hashed = await bcrypt.hash(dto.password, 10);
     const user = this.userRepo.create({
@@ -30,13 +35,21 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.userRepo.findOne({ where: { email: dto.email } });
+    // Accept email OR username
+    let user: User | null = null;
+    if (dto.email) {
+      user = await this.userRepo.findOne({ where: { email: dto.email } });
+    } else if (dto.username) {
+      user = await this.userRepo.findOne({ where: { username: dto.username } });
+    }
+
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
     const valid = await bcrypt.compare(dto.password, user.password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
-    const payload = { sub: user.id, email: user.email };
+    // Include username in JWT payload
+    const payload = { sub: user.id, email: user.email, username: user.username };
     const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
@@ -47,12 +60,18 @@ export class AuthService {
     try {
       const payload = this.jwtService.verify(token);
       const newAccess = this.jwtService.sign(
-        { sub: payload.sub, email: payload.email },
+        { sub: payload.sub, email: payload.email, username: payload.username },
         { expiresIn: '15m' },
       );
       return { accessToken: newAccess };
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  async getCurrentUser(userId: string) {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('User not found');
+    return { id: user.id, email: user.email, username: user.username };
   }
 }

@@ -1,13 +1,20 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import * as amqp from 'amqplib';
+import { Task } from '../tasks/entities/task.entity';
 
 @Injectable()
 export class EventsService implements OnModuleInit, OnModuleDestroy {
   private connection: any;
   private channel: any;
 
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    @InjectRepository(Task)
+    private readonly taskRepo: Repository<Task>,
+  ) {}
 
   async onModuleInit() {
     try {
@@ -47,11 +54,14 @@ export class EventsService implements OnModuleInit, OnModuleDestroy {
 
   async publishTaskUpdated(taskId: string, changes: any, userId: string) {
     try {
+      const task = await this.taskRepo.findOne({ where: { id: taskId } });
       const payload = {
         event: 'task:updated',
         taskId,
         changes,
         updatedBy: userId,
+        assignees: task?.assignees || [],
+        creatorId: task?.creatorId,
         timestamp: new Date().toISOString(),
       };
       console.log('📤 Publishing task.updated event:', payload);
@@ -67,12 +77,14 @@ export class EventsService implements OnModuleInit, OnModuleDestroy {
 
   async publishCommentNew(comment: any, taskId: string) {
     try {
+      const task = await this.taskRepo.findOne({ where: { id: taskId } });
       const payload = {
         event: 'comment:new',
         commentId: comment.id,
         taskId,
         authorId: comment.authorId,
         body: comment.body,
+        assignees: task?.assignees || [],
         timestamp: new Date().toISOString(),
       };
       console.log('📤 Publishing comment.new event:', payload);

@@ -31,8 +31,8 @@ export class TasksController implements OnModuleInit {
   @ApiResponse({ status: 200, description: 'Tasks retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async findAll(@Req() req: any) {
-    console.log('Usuário autenticado:', req.user);
-    return await this.client.send({ cmd: 'get_tasks' }, {}).toPromise();
+    const userId = req.user.sub;
+    return await this.client.send({ cmd: 'get_tasks' }, { userId }).toPromise();
   }
 
   @UseGuards(JwtAuthGuard)

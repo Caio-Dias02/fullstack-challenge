@@ -5,6 +5,7 @@ import { TasksModule } from './tasks/tasks.module';
 import { TaskHistoryModule } from './task-history/task-history.module';
 import { CommentsModule } from './comments/comments.module';
 import { EventsModule } from './events/events.module';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
@@ -27,5 +28,6 @@ import { EventsModule } from './events/events.module';
     TaskHistoryModule,
     CommentsModule,
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}

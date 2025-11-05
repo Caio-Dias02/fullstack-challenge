@@ -84,17 +84,21 @@ export class EventsHandler implements OnModuleInit, OnModuleDestroy {
   private handleTaskUpdated(event: any) {
     console.log('📥 task:updated -', event.taskId);
 
-    // TODO: Buscar assignees da task e enviar notificação
-    // Por enquanto, broadcast para todos
-    this.notificationsGateway.broadcastToAll('task:updated', event);
+    // Notificar assignees (atual + anterior)
+    const assignees = event.assignees || [];
+    if (assignees.length > 0) {
+      this.notificationsGateway.broadcastEvent('task:updated', event, assignees);
+    }
   }
 
   private handleCommentNew(event: any) {
     console.log('📥 comment:new -', event.commentId);
 
-    // TODO: Buscar assignees da task e enviar notificação
-    // Excluir o author da notificação
-    this.notificationsGateway.broadcastToAll('comment:new', event);
+    // Notificar assignees EXCETO o author
+    const assignees = (event.assignees || []).filter((id: string) => id !== event.authorId);
+    if (assignees.length > 0) {
+      this.notificationsGateway.broadcastEvent('comment:new', event, assignees);
+    }
   }
 
   async onModuleDestroy() {

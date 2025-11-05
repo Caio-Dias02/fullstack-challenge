@@ -16,6 +16,11 @@ export class TasksService {
   ) {}
 
   async create(dto: CreateTaskDto) {
+    // Set default assignees to creator if not provided
+    if (!dto.assignees || dto.assignees.length === 0) {
+      dto.assignees = [dto.creatorId];
+    }
+
     const task = this.taskRepo.create(dto);
     const saved = await this.taskRepo.save(task);
 
@@ -25,8 +30,18 @@ export class TasksService {
     return saved;
   }
 
-  findAll() {
-    return this.taskRepo.find();
+  async findAll(userId?: string) {
+    if (!userId) {
+      return this.taskRepo.find();
+    }
+
+    // Filter tasks where user is creator OR in assignees
+    return this.taskRepo
+      .createQueryBuilder('task')
+      .where('task.creatorId = :userId', { userId })
+      .orWhere(':userId = ANY(task.assignees)', { userId })
+      .orderBy('task.createdAt', 'DESC')
+      .getMany();
   }
 
   async findOne(id: string) {

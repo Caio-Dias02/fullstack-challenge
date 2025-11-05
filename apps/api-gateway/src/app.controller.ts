@@ -7,9 +7,14 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
+  @Get('health')
   @ApiOperation({ summary: 'Health check' })
   @ApiResponse({ status: 200, description: 'API Gateway is healthy' })
+  getHealth() {
+    return { status: 'ok', service: 'api-gateway', timestamp: new Date().toISOString() };
+  }
+
+  @Get()
   getHello(): string {
     return this.appService.getHello();
   }

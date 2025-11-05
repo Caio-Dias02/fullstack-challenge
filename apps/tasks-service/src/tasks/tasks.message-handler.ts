@@ -8,8 +8,8 @@ export class TasksMessageHandler {
   constructor(private readonly tasksService: TasksService) {}
 
   @MessagePattern({ cmd: 'get_tasks' })
-  async findAll() {
-    return this.tasksService.findAll();
+  async findAll(data?: { userId?: string }) {
+    return this.tasksService.findAll(data?.userId);
   }
 
   @MessagePattern({ cmd: 'get_task_by_id' })

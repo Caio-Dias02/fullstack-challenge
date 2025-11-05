@@ -1,4 +1,18 @@
-import { IsString, IsOptional, IsUUID, IsArray, IsEnum, IsDateString, MaxLength, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsArray, IsEnum, IsDateString, MaxLength, MinLength, Validate } from 'class-validator';
+import { ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from 'class-validator';
+
+@ValidatorConstraint({ name: 'isFutureDate', async: false })
+class IsFutureDate implements ValidatorConstraintInterface {
+  validate(value: any) {
+    if (!value) return true;
+    const date = new Date(value);
+    return date > new Date();
+  }
+
+  defaultMessage() {
+    return 'dueDate must be a future date';
+  }
+}
 
 export enum TaskStatus {
   TODO = 'TODO',
@@ -27,6 +41,7 @@ export class CreateTaskDto {
 
   @IsOptional()
   @IsDateString()
+  @Validate(IsFutureDate)
   dueDate?: string;
 
   @IsOptional()
