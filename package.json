@@ -2,6 +2,7 @@
   "name": "fullstack-challenge",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@10.14.0",
   "scripts": {
     "dev:auth": "pnpm --filter @fullstack-challenge/auth-service dev",
     "dev:tasks": "pnpm --filter @fullstack-challenge/tasks-service dev",
