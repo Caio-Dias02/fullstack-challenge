@@ -17,6 +17,9 @@ export function TasksPage() {
   const setTasks = useTasksStore((state) => state.setTasks)
   const toast = useToast()
   const [loading, setLoading] = useState(true)
+  const [selectedStatus, setSelectedStatus] = useState<string>('')
+  const [selectedPriority, setSelectedPriority] = useState<string>('')
+  const [searchQuery, setSearchQuery] = useState<string>('')
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -53,6 +56,19 @@ export function TasksPage() {
     return colors[priority]
   }
 
+  const filteredTasks = tasks.filter((task) => {
+    const matchesStatus = !selectedStatus || task.status === selectedStatus
+    const matchesPriority = !selectedPriority || task.priority === selectedPriority
+    const matchesSearch = !searchQuery || task.title.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesStatus && matchesPriority && matchesSearch
+  })
+
+  const clearFilters = () => {
+    setSelectedStatus('')
+    setSelectedPriority('')
+    setSearchQuery('')
+  }
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -71,6 +87,67 @@ export function TasksPage() {
         </div>
       </div>
 
+      {/* Search and Filters */}
+      {!loading && tasks.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Search & Filters</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Search by title</label>
+                <input
+                  type="text"
+                  placeholder="Search tasks..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-4 items-end">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Status</label>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="border rounded px-3 py-2 text-sm"
+                >
+                  <option value="">All statuses</option>
+                  <option value="TODO">TODO</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="REVIEW">Review</option>
+                  <option value="DONE">Done</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Priority</label>
+                <select
+                  value={selectedPriority}
+                  onChange={(e) => setSelectedPriority(e.target.value)}
+                  className="border rounded px-3 py-2 text-sm"
+                >
+                  <option value="">All priorities</option>
+                  <option value="LOW">Low</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HIGH">High</option>
+                  <option value="URGENT">Urgent</option>
+                </select>
+              </div>
+
+              {(selectedStatus || selectedPriority || searchQuery) && (
+                <Button variant="outline" size="sm" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Tasks Grid */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-12">
@@ -83,9 +160,15 @@ export function TasksPage() {
             <p className="text-muted-foreground">No tasks yet. Create one to get started!</p>
           </CardContent>
         </Card>
+      ) : filteredTasks.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground">No tasks match the selected filters.</p>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tasks.map((task) => (
+          {filteredTasks.map((task) => (
             <Link key={task.id} to={`/tasks/${task.id}`}>
               <Card className="cursor-pointer hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">

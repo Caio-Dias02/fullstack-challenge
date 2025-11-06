@@ -7,6 +7,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { useTasksStore } from '@/store/tasks'
 import { useToast } from '@/store/toast'
 import { tasksAPI, Comment } from '@/api/tasks'
@@ -47,6 +55,7 @@ export function TaskDetailPage() {
   const [addingComment, setAddingComment] = useState(false)
   const [addingAssignee, setAddingAssignee] = useState(false)
   const [removingAssignee, setRemovingAssignee] = useState<string | null>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const {
     register,
@@ -119,19 +128,26 @@ export function TaskDetailPage() {
   const handleDeleteTask = async () => {
     if (!task) return
 
-    if (!confirm('Are you sure you want to delete this task?')) return
-
     setDeletingTask(true)
     try {
       await tasksAPI.delete(task.id)
       deleteTask(task.id)
       toast.success('Task deleted successfully')
+      setShowDeleteDialog(false)
       navigate({ to: '/' })
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to delete task')
     } finally {
       setDeletingTask(false)
     }
+  }
+
+  const handleDeleteClick = () => {
+    setShowDeleteDialog(true)
+  }
+
+  const handleDeleteCancel = () => {
+    setShowDeleteDialog(false)
   }
 
   const onCommentSubmit = async (data: CommentForm) => {
@@ -211,7 +227,7 @@ export function TaskDetailPage() {
         </Link>
         <div className="flex gap-2">
           {isCreator && (
-            <Button variant="destructive" onClick={handleDeleteTask} disabled={deletingTask}>
+            <Button variant="destructive" onClick={handleDeleteClick} disabled={deletingTask}>
               {deletingTask ? (
                 <div className="flex items-center gap-2">
                   <Spinner size="sm" />
@@ -444,6 +460,33 @@ export function TaskDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Task</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this task? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleDeleteCancel} disabled={deletingTask}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteTask} disabled={deletingTask}>
+              {deletingTask ? (
+                <div className="flex items-center gap-2">
+                  <Spinner size="sm" />
+                  <span>Deleting...</span>
+                </div>
+              ) : (
+                'Delete'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
