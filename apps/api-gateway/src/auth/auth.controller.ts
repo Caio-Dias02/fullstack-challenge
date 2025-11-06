@@ -1,8 +1,9 @@
-import { Controller, Post, Body, Res, Req } from '@nestjs/common';
+import { Controller, Post, Body, Res, Req, Get, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import type { Response, Request } from 'express';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -83,6 +84,21 @@ export class AuthController {
         {},
         { headers: { cookie: req.headers.cookie || '' } }
       )
+    );
+    return response.data;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('users/search')
+  @ApiOperation({ summary: 'Search users by email or username' })
+  @ApiResponse({ status: 200, description: 'Users found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async searchUsers(@Query('q') query: string, @Req() req: Request) {
+    const response = await firstValueFrom(
+      this.httpService.get(`${this.authServiceUrl}/auth/users/search`, {
+        params: { q: query },
+        headers: { Authorization: req.headers.authorization || '' },
+      })
     );
     return response.data;
   }

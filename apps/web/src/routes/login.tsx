@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuthStore } from '@/store/auth'
+import { useToast } from '@/store/toast'
 import { authAPI } from '@/api/auth'
 import { rootRoute } from './__root'
 
@@ -25,7 +26,7 @@ export const Route = createFileRoute('/login')({
 export function LoginPage() {
   const navigate = useNavigate()
   const setAuth = useAuthStore((state) => state.setAuth)
-  const [error, setError] = useState<string>('')
+  const toast = useToast()
   const [loading, setLoading] = useState(false)
 
   const {
@@ -37,7 +38,6 @@ export function LoginPage() {
   })
 
   const onSubmit = async (data: LoginForm) => {
-    setError('')
     setLoading(true)
 
     try {
@@ -49,9 +49,10 @@ export function LoginPage() {
 
       const response = await authAPI.login(loginData)
       setAuth(response.user, response.accessToken)
+      toast.success('Login successful!')
       navigate({ to: '/' })
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed')
+      toast.error(err.response?.data?.message || 'Login failed')
     } finally {
       setLoading(false)
     }
@@ -66,8 +67,6 @@ export function LoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {error && <div className="p-3 bg-red-100 text-red-700 rounded text-sm">{error}</div>}
-
             <div>
               <label className="block text-sm font-medium mb-1">Email or Username</label>
               <Input

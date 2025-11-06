@@ -19,6 +19,12 @@ export interface AuthResponse {
   refreshToken: string
 }
 
+export interface UserSearchResult {
+  id: string
+  email: string
+  username: string
+}
+
 export const authAPI = {
   register: async (data: RegisterRequest): Promise<AuthResponse> => {
     const res = await apiClient.post('/auth/register', data)
@@ -37,6 +43,11 @@ export const authAPI = {
 
   refresh: async (): Promise<AuthResponse> => {
     const res = await apiClient.post('/auth/refresh')
+    return res.data
+  },
+
+  searchUsers: async (query: string): Promise<UserSearchResult[]> => {
+    const res = await apiClient.get('/auth/users/search', { params: { q: query } })
     return res.data
   },
 }

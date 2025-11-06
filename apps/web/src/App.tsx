@@ -7,6 +7,7 @@ import { LoginPage } from './routes/login'
 import { RegisterPage } from './routes/register'
 import { NewTaskPage } from './routes/tasks.new'
 import { TaskDetailPage } from './routes/tasks.$id'
+import { ToastContainer } from './components/toast-container'
 
 // Root layout
 const RootLayout = () => {
@@ -29,6 +30,7 @@ const RootLayout = () => {
   return (
     <div className="min-h-screen bg-background">
       <Outlet />
+      <ToastContainer />
     </div>
   )
 }

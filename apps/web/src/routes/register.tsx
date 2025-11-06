@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuthStore } from '@/store/auth'
+import { useToast } from '@/store/toast'
 import { authAPI } from '@/api/auth'
 import { rootRoute } from './__root'
 
@@ -33,7 +34,7 @@ export const Route = createFileRoute('/register')({
 export function RegisterPage() {
   const navigate = useNavigate()
   const setAuth = useAuthStore((state) => state.setAuth)
-  const [error, setError] = useState<string>('')
+  const toast = useToast()
   const [loading, setLoading] = useState(false)
 
   const {
@@ -45,15 +46,15 @@ export function RegisterPage() {
   })
 
   const onSubmit = async (data: RegisterForm) => {
-    setError('')
     setLoading(true)
 
     try {
       const response = await authAPI.register(data)
       setAuth(response.user, response.accessToken)
+      toast.success('Account created successfully!')
       navigate({ to: '/' })
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed')
+      toast.error(err.response?.data?.message || 'Registration failed')
     } finally {
       setLoading(false)
     }
@@ -68,8 +69,6 @@ export function RegisterPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {error && <div className="p-3 bg-red-100 text-red-700 rounded text-sm">{error}</div>}
-
             <div>
               <label className="block text-sm font-medium mb-1">Email</label>
               <Input {...register('email')} placeholder="john@example.com" type="email" />

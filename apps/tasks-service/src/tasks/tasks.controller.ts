@@ -8,24 +8,28 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
-  create(@Body() dto: CreateTaskDto) {
-    return this.tasksService.create(dto);
+  async create(@Body() dto: CreateTaskDto) {
+    const task = await this.tasksService.create(dto);
+    return await this.tasksService.enrichTaskWithAssigneeData(task);
   }
 
   @Get()
-  findAll() {
-    return this.tasksService.findAll();
+  async findAll() {
+    const tasks = await this.tasksService.findAll();
+    return await this.tasksService.enrichTasks(tasks);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tasksService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const task = await this.tasksService.findOne(id);
+    return await this.tasksService.enrichTaskWithAssigneeData(task);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() body: any) {
+  async update(@Param('id') id: string, @Body() body: any) {
     const { dto, userId } = body;
-    return this.tasksService.update(id, dto, userId);
+    const task = await this.tasksService.update(id, dto, userId);
+    return await this.tasksService.enrichTaskWithAssigneeData(task);
   }
 
   @Delete(':id')
@@ -36,23 +40,27 @@ export class TasksController {
 
   // Message patterns pra API Gateway (RabbitMQ)
   @MessagePattern({ cmd: 'create_task' })
-  createTask(@Payload() dto: CreateTaskDto) {
-    return this.tasksService.create(dto);
+  async createTask(@Payload() dto: CreateTaskDto) {
+    const task = await this.tasksService.create(dto);
+    return await this.tasksService.enrichTaskWithAssigneeData(task);
   }
 
   @MessagePattern({ cmd: 'get_tasks' })
-  getTasks() {
-    return this.tasksService.findAll();
+  async getTasks() {
+    const tasks = await this.tasksService.findAll();
+    return await this.tasksService.enrichTasks(tasks);
   }
 
   @MessagePattern({ cmd: 'get_task' })
-  getTask(@Payload() data: { id: string }) {
-    return this.tasksService.findOne(data.id);
+  async getTask(@Payload() data: { id: string }) {
+    const task = await this.tasksService.findOne(data.id);
+    return await this.tasksService.enrichTaskWithAssigneeData(task);
   }
 
   @MessagePattern({ cmd: 'update_task' })
-  updateTask(@Payload() data: { id: string; dto: UpdateTaskDto; userId: string }) {
-    return this.tasksService.update(data.id, data.dto, data.userId);
+  async updateTask(@Payload() data: { id: string; dto: UpdateTaskDto; userId: string }) {
+    const task = await this.tasksService.update(data.id, data.dto, data.userId);
+    return await this.tasksService.enrichTaskWithAssigneeData(task);
   }
 
   @MessagePattern({ cmd: 'delete_task' })

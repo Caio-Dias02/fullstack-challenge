@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -72,6 +72,29 @@ export class AuthService {
   async getCurrentUser(userId: string) {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new UnauthorizedException('User not found');
+    return { id: user.id, email: user.email, username: user.username };
+  }
+
+  async searchUsers(query: string) {
+    if (!query || query.length < 1) {
+      return [];
+    }
+
+    const users = await this.userRepo
+      .createQueryBuilder('user')
+      .where('user.email ILIKE :query OR user.username ILIKE :query', {
+        query: `%${query}%`,
+      })
+      .select(['user.id', 'user.email', 'user.username'])
+      .limit(10)
+      .getMany();
+
+    return users;
+  }
+
+  async getUserById(userId: string) {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
     return { id: user.id, email: user.email, username: user.username };
   }
 }

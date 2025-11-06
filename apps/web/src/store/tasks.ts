@@ -1,5 +1,11 @@
 import { create } from 'zustand'
 
+export interface AssigneeData {
+  id: string
+  username: string
+  email: string
+}
+
 export interface Task {
   id: string
   title: string
@@ -9,6 +15,7 @@ export interface Task {
   dueDate?: string
   creatorId: string
   assignees: string[]
+  assigneesData?: AssigneeData[]
   createdAt: string
   updatedAt: string
 }

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Res, Req, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Res, Req, Get, UseGuards, Query, Param } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto } from '../../../../packages/types';
 import { Response, Request } from 'express';
@@ -43,6 +43,17 @@ export class AuthController {
   @Get('me')
   async getCurrentUser(@Req() req: any) {
     return await this.authService.getCurrentUser(req.user.sub);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('users/search')
+  async searchUsers(@Query('q') query: string) {
+    return await this.authService.searchUsers(query);
+  }
+
+  @Get('users/:id')
+  async getUserById(@Param('id') id: string) {
+    return await this.authService.getUserById(id);
   }
 
   @Get('health')

@@ -8,7 +8,9 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useTasksStore } from '@/store/tasks'
+import { useToast } from '@/store/toast'
 import { tasksAPI, Comment } from '@/api/tasks'
+import { authAPI, UserSearchResult } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
 import { rootRoute } from './__root'
 
@@ -30,11 +32,15 @@ export function TaskDetailPage() {
   const selectedTask = useTasksStore((state) => state.selectedTask)
   const updateTask = useTasksStore((state) => state.updateTask)
   const deleteTask = useTasksStore((state) => state.deleteTask)
+  const toast = useToast()
   const [task, setTask] = useState(selectedTask)
   const [comments, setComments] = useState<Comment[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [editingStatus, setEditingStatus] = useState(false)
+  const [editingAssignees, setEditingAssignees] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<UserSearchResult[]>([])
+  const [searching, setSearching] = useState(false)
 
   const {
     register,
@@ -54,8 +60,8 @@ export function TaskDetailPage() {
 
         const commentsData = await tasksAPI.getComments(id)
         setComments(commentsData)
-      } catch (err) {
-        setError('Failed to load task')
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Failed to load task')
       } finally {
         setLoading(false)
       }
@@ -63,6 +69,29 @@ export function TaskDetailPage() {
 
     fetch()
   }, [id, updateTask])
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (searchQuery.length < 1) {
+        setSearchResults([])
+        return
+      }
+
+      setSearching(true)
+      try {
+        const results = await authAPI.searchUsers(searchQuery)
+        setSearchResults(
+          results.filter((u) => !task?.assignees.includes(u.id))
+        )
+      } catch (err: any) {
+        toast.error('Failed to search users')
+      } finally {
+        setSearching(false)
+      }
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchQuery, task?.assignees, toast])
 
   const handleStatusChange = async (newStatus: any) => {
     if (!task) return
@@ -72,8 +101,9 @@ export function TaskDetailPage() {
       setTask(updated)
       updateTask(updated)
       setEditingStatus(false)
-    } catch (err) {
-      setError('Failed to update status')
+      toast.success('Task status updated')
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to update status')
     }
   }
 
@@ -85,9 +115,10 @@ export function TaskDetailPage() {
     try {
       await tasksAPI.delete(task.id)
       deleteTask(task.id)
+      toast.success('Task deleted successfully')
       navigate({ to: '/' })
-    } catch (err) {
-      setError('Failed to delete task')
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to delete task')
     }
   }
 
@@ -98,8 +129,49 @@ export function TaskDetailPage() {
       const newComment = await tasksAPI.addComment(task.id, data)
       setComments([...comments, newComment])
       reset()
-    } catch (err) {
-      setError('Failed to add comment')
+      toast.success('Comment added successfully')
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to add comment')
+    }
+  }
+
+  const handleAddAssignee = async (userId: string) => {
+    if (!task || !userId) {
+      toast.error('Please select a user')
+      return
+    }
+
+    if (task.assignees.includes(userId)) {
+      toast.error('User is already assigned')
+      return
+    }
+
+    try {
+      const updated = await tasksAPI.update(task.id, {
+        assignees: [...task.assignees, userId],
+      })
+      setTask(updated)
+      updateTask(updated)
+      setSearchQuery('')
+      setSearchResults([])
+      toast.success('Assignee added')
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to add assignee')
+    }
+  }
+
+  const handleRemoveAssignee = async (assigneeId: string) => {
+    if (!task) return
+
+    try {
+      const updated = await tasksAPI.update(task.id, {
+        assignees: task.assignees.filter((id) => id !== assigneeId),
+      })
+      setTask(updated)
+      updateTask(updated)
+      toast.success('Assignee removed')
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to remove assignee')
     }
   }
 
@@ -124,8 +196,6 @@ export function TaskDetailPage() {
           )}
         </div>
       </div>
-
-      {error && <div className="p-3 bg-red-100 text-red-700 rounded">{error}</div>}
 
       {/* Task Details */}
       <Card>
@@ -181,8 +251,81 @@ export function TaskDetailPage() {
               </div>
             )}
             <div>
-              <h3 className="font-semibold mb-1">Assignees</h3>
-              <p className="text-sm text-muted-foreground">{task.assignees.length} people</p>
+              <h3 className="font-semibold mb-2">Assignees</h3>
+              {editingAssignees ? (
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Input
+                      placeholder="Search by email or username..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="text-sm"
+                    />
+                    {searchQuery && searchResults.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded shadow-lg z-10">
+                        {searchResults.map((user) => (
+                          <button
+                            key={user.id}
+                            onClick={() => handleAddAssignee(user.id)}
+                            className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm border-b last:border-b-0"
+                          >
+                            <div className="font-medium">{user.username}</div>
+                            <div className="text-xs text-gray-500">{user.email}</div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {(task as any).assigneesData && (task as any).assigneesData.length > 0 && (
+                    <div className="space-y-1">
+                      {(task as any).assigneesData.map((assignee: any) => (
+                        <div
+                          key={assignee.id}
+                          className="flex items-center justify-between p-2 bg-muted rounded text-sm"
+                        >
+                          <div>
+                            <div className="font-medium">{assignee.username}</div>
+                            <div className="text-xs text-gray-500">{assignee.email}</div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleRemoveAssignee(assignee.id)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setEditingAssignees(false)
+                      setSearchQuery('')
+                      setSearchResults([])
+                    }}
+                  >
+                    Done
+                  </Button>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {task.assignees.length} people
+                  </p>
+                  {isCreator && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setEditingAssignees(true)}
+                    >
+                      Manage
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </CardContent>

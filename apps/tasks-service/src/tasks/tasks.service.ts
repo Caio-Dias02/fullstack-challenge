@@ -5,6 +5,7 @@ import { Task } from "./entities/task.entity";
 import { CreateTaskDto, UpdateTaskDto } from "@fullstack-challenge/types";
 import { TaskHistoryService } from "../task-history/task-history.service";
 import { EventsService } from "../events/events.service";
+import { UsersService, UserData } from "./users.service";
 
 @Injectable()
 export class TasksService {
@@ -12,7 +13,8 @@ export class TasksService {
     @InjectRepository(Task)
     private readonly taskRepo: Repository<Task>,
     private readonly taskHistoryService: TaskHistoryService,
-    private readonly eventsService: EventsService
+    private readonly eventsService: EventsService,
+    private readonly usersService: UsersService
   ) {}
 
   async create(dto: CreateTaskDto) {
@@ -98,5 +100,27 @@ export class TasksService {
 
     await this.taskRepo.delete(task.id);
     return { message: "Task deleted successfully", id: task.id };
+  }
+
+  async enrichTaskWithAssigneeData(task: Task): Promise<any> {
+    if (!task.assignees || task.assignees.length === 0) {
+      return { ...task, assigneesData: [] };
+    }
+
+    const userMap = await this.usersService.getUsersByIds(task.assignees);
+    const assigneesData: UserData[] = [];
+
+    for (const userId of task.assignees) {
+      const userData = userMap.get(userId);
+      if (userData) {
+        assigneesData.push(userData);
+      }
+    }
+
+    return { ...task, assigneesData };
+  }
+
+  async enrichTasks(tasks: Task[]): Promise<any[]> {
+    return Promise.all(tasks.map((task) => this.enrichTaskWithAssigneeData(task)));
   }
 }

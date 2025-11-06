@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/store/auth'
 import { useTasksStore } from '@/store/tasks'
+import { useToast } from '@/store/toast'
 import { tasksAPI } from '@/api/tasks'
 import { Task } from '@/store/tasks'
 import { Link } from '@tanstack/react-router'
@@ -13,6 +14,7 @@ export function TasksPage() {
   const logout = useAuthStore((state) => state.logout)
   const tasks = useTasksStore((state) => state.tasks)
   const setTasks = useTasksStore((state) => state.setTasks)
+  const toast = useToast()
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -20,8 +22,8 @@ export function TasksPage() {
       try {
         const data = await tasksAPI.list()
         setTasks(data)
-      } catch (err) {
-        console.error('Failed to fetch tasks', err)
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Failed to fetch tasks')
       } finally {
         setLoading(false)
       }

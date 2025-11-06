@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { tasksAPI } from '@/api/tasks'
 import { useTasksStore } from '@/store/tasks'
+import { useToast } from '@/store/toast'
 import { rootRoute } from './__root'
 
 const createTaskSchema = z.object({
@@ -27,7 +28,7 @@ export const Route = createFileRoute('/tasks/new')({
 export function NewTaskPage() {
   const navigate = useNavigate()
   const addTask = useTasksStore((state) => state.addTask)
-  const [error, setError] = useState('')
+  const toast = useToast()
   const [loading, setLoading] = useState(false)
 
   const {
@@ -39,15 +40,15 @@ export function NewTaskPage() {
   })
 
   const onSubmit = async (data: CreateTaskForm) => {
-    setError('')
     setLoading(true)
 
     try {
       const created = await tasksAPI.create(data)
       addTask(created)
+      toast.success('Task created successfully')
       navigate({ to: `/tasks/${created.id}` })
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create task')
+      toast.error(err.response?.data?.message || 'Failed to create task')
     } finally {
       setLoading(false)
     }
@@ -66,8 +67,6 @@ export function NewTaskPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {error && <div className="p-3 bg-red-100 text-red-700 rounded text-sm">{error}</div>}
-
             <div>
               <label className="block text-sm font-medium mb-1">Title</label>
               <Input {...register('title')} placeholder="Task title" />

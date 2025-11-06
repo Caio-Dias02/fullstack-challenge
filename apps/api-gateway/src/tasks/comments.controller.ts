@@ -6,7 +6,7 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @ApiTags('Comments')
 @ApiBearerAuth()
-@Controller('api/tasks/:taskId/comments')
+@Controller('tasks/:taskId/comments')
 export class CommentsController implements OnModuleInit {
   private client: ClientProxy;
 
