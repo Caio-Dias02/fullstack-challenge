@@ -1,6 +1,7 @@
 import { RouterProvider, createRouter, createBrowserHistory, RootRoute, Route, useLocation, useNavigate } from '@tanstack/react-router'
 import { Outlet } from '@tanstack/react-router'
 import { useEffect } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useAuthStore } from './store/auth'
 import { useWebSocket } from './hooks/useWebSocket'
 import { TasksPage } from './routes/index'
@@ -9,6 +10,20 @@ import { RegisterPage } from './routes/register'
 import { NewTaskPage } from './routes/tasks.new'
 import { TaskDetailPage } from './routes/tasks.$id'
 import { ToastContainer } from './components/toast-container'
+
+// Create a client for TanStack Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 10, // 10 minutes (formerly cacheTime)
+      retry: 1,
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+})
 
 // Root layout
 const RootLayout = () => {
@@ -91,5 +106,9 @@ declare module '@tanstack/react-router' {
 }
 
 export function App() {
-  return <RouterProvider router={router} />
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  )
 }

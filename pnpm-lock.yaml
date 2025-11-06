@@ -475,6 +475,9 @@ importers:
       '@radix-ui/react-slot':
         specifier: ^1.2.4
         version: 1.2.4(@types/react@18.3.26)(react@18.3.1)
+      '@tanstack/react-query':
+        specifier: ^5.90.7
+        version: 5.90.7(react@18.3.1)
       '@tanstack/react-router':
         specifier: ^1.32.6
         version: 1.134.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -2147,6 +2150,14 @@ packages:
   '@tanstack/history@1.133.28':
     resolution: {integrity: sha512-B7+x7eP2FFvi3fgd3rNH9o/Eixt+pp0zCIdGhnQbAJjFrlwIKGjGnwyJjhWJ5fMQlGks/E2LdDTqEV4W9Plx7g==}
     engines: {node: '>=12'}
+
+  '@tanstack/query-core@5.90.7':
+    resolution: {integrity: sha512-6PN65csiuTNfBMXqQUxQhCNdtm1rV+9kC9YwWAIKcaxAauq3Wu7p18j3gQY3YIBJU70jT/wzCCZ2uqto/vQgiQ==}
+
+  '@tanstack/react-query@5.90.7':
+    resolution: {integrity: sha512-wAHc/cgKzW7LZNFloThyHnV/AX9gTg3w5yAv0gvQHPZoCnepwqCMtzbuPbb2UvfvO32XZ46e8bPOYbfZhzVnnQ==}
+    peerDependencies:
+      react: ^18 || ^19
 
   '@tanstack/react-router-devtools@1.134.13':
     resolution: {integrity: sha512-qCPkzqOha0kWWfxrGJ9uzbM5pCjvKVjrXrJskPlxb9YOEHAgDm28G6QyecX5jbWTd9h3pLG9vCvJ632+xmejDw==}
@@ -6959,6 +6970,13 @@ snapshots:
   '@sqltools/formatter@1.2.5': {}
 
   '@tanstack/history@1.133.28': {}
+
+  '@tanstack/query-core@5.90.7': {}
+
+  '@tanstack/react-query@5.90.7(react@18.3.1)':
+    dependencies:
+      '@tanstack/query-core': 5.90.7
+      react: 18.3.1
 
   '@tanstack/react-router-devtools@1.134.13(@tanstack/react-router@1.134.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@tanstack/router-core@1.134.13)(@types/node@22.19.0)(csstype@3.1.3)(jiti@1.21.7)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(solid-js@1.9.10)(terser@5.44.1)(tiny-invariant@1.3.3)':
     dependencies:

@@ -17,10 +17,11 @@ import {
 } from '@/components/ui/dialog'
 import { useTasksStore } from '@/store/tasks'
 import { useToast } from '@/store/toast'
-import { tasksAPI, Comment } from '@/api/tasks'
+import { Comment } from '@/api/tasks'
 import { authAPI, UserSearchResult } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
 import { Spinner } from '@/components/spinner'
+import { useTaskDetail, useTaskComments, useUpdateTask, useDeleteTask, useAddComment } from '@/hooks/useTasksQuery'
 import { rootRoute } from './__root'
 
 const commentSchema = z.object({
@@ -28,6 +29,15 @@ const commentSchema = z.object({
 })
 
 type CommentForm = z.infer<typeof commentSchema>
+
+const editTaskSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
+  description: z.string().max(2000, 'Description too long').optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
+  dueDate: z.string().optional(),
+})
+
+type EditTaskForm = z.infer<typeof editTaskSchema>
 
 export const Route = createFileRoute('/tasks/$id')({
   getParentRoute: () => rootRoute,
@@ -38,13 +48,16 @@ export function TaskDetailPage() {
   const { id } = useParams({ from: '/tasks/$id' })
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
-  const selectedTask = useTasksStore((state) => state.selectedTask)
   const updateTask = useTasksStore((state) => state.updateTask)
   const deleteTask = useTasksStore((state) => state.deleteTask)
-  const toast = useToast()
-  const [task, setTask] = useState(selectedTask)
-  const [comments, setComments] = useState<Comment[]>([])
-  const [loading, setLoading] = useState(true)
+
+  // TanStack Query hooks
+  const { data: task, isLoading } = useTaskDetail(id)
+  const { data: comments = [], refetch: refetchComments } = useTaskComments(id)
+  const { mutate: mutateUpdateTask } = useUpdateTask(id)
+  const { mutate: mutateDeleteTask } = useDeleteTask()
+  const { mutate: mutateAddComment } = useAddComment(id)
+
   const [editingStatus, setEditingStatus] = useState(false)
   const [editingAssignees, setEditingAssignees] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -56,6 +69,8 @@ export function TaskDetailPage() {
   const [addingAssignee, setAddingAssignee] = useState(false)
   const [removingAssignee, setRemovingAssignee] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [editingTask, setEditingTask] = useState(false)
+  const [savingTask, setSavingTask] = useState(false)
 
   const {
     register,
@@ -66,24 +81,27 @@ export function TaskDetailPage() {
     resolver: zodResolver(commentSchema),
   })
 
+  const {
+    register: registerEditForm,
+    handleSubmit: handleSubmitEditForm,
+    reset: resetEditForm,
+    formState: { errors: editErrors },
+  } = useForm<EditTaskForm>({
+    resolver: zodResolver(editTaskSchema),
+    defaultValues: {
+      title: task?.title || '',
+      description: task?.description || '',
+      priority: task?.priority || 'MEDIUM',
+      dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+    },
+  })
+
+  // Sync task to Zustand store for compatibility
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const data = await tasksAPI.get(id)
-        setTask(data)
-        updateTask(data)
-
-        const commentsData = await tasksAPI.getComments(id)
-        setComments(commentsData)
-      } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Failed to load task')
-      } finally {
-        setLoading(false)
-      }
+    if (task) {
+      updateTask(task)
     }
-
-    fetch()
-  }, [id, updateTask])
+  }, [task, updateTask])
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -112,34 +130,33 @@ export function TaskDetailPage() {
     if (!task) return
 
     setUpdatingStatus(true)
-    try {
-      const updated = await tasksAPI.update(task.id, { status: newStatus })
-      setTask(updated)
-      updateTask(updated)
-      setEditingStatus(false)
-      toast.success('Task status updated')
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to update status')
-    } finally {
-      setUpdatingStatus(false)
-    }
+    mutateUpdateTask(
+      { status: newStatus },
+      {
+        onSuccess: () => {
+          setEditingStatus(false)
+        },
+        onSettled: () => {
+          setUpdatingStatus(false)
+        },
+      }
+    )
   }
 
   const handleDeleteTask = async () => {
     if (!task) return
 
     setDeletingTask(true)
-    try {
-      await tasksAPI.delete(task.id)
-      deleteTask(task.id)
-      toast.success('Task deleted successfully')
-      setShowDeleteDialog(false)
-      navigate({ to: '/' })
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to delete task')
-    } finally {
-      setDeletingTask(false)
-    }
+    mutateDeleteTask(task.id, {
+      onSuccess: () => {
+        deleteTask(task.id)
+        setShowDeleteDialog(false)
+        navigate({ to: '/' })
+      },
+      onSettled: () => {
+        setDeletingTask(false)
+      },
+    })
   }
 
   const handleDeleteClick = () => {
@@ -150,20 +167,54 @@ export function TaskDetailPage() {
     setShowDeleteDialog(false)
   }
 
+  const onEditTaskSubmit = async (data: EditTaskForm) => {
+    if (!task) return
+
+    setSavingTask(true)
+    mutateUpdateTask(
+      {
+        title: data.title,
+        description: data.description || undefined,
+        priority: data.priority,
+        dueDate: data.dueDate || undefined,
+      },
+      {
+        onSuccess: () => {
+          setEditingTask(false)
+        },
+        onSettled: () => {
+          setSavingTask(false)
+        },
+      }
+    )
+  }
+
+  const handleEditClick = () => {
+    resetEditForm({
+      title: task?.title || '',
+      description: task?.description || '',
+      priority: task?.priority || 'MEDIUM',
+      dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+    })
+    setEditingTask(true)
+  }
+
+  const handleEditCancel = () => {
+    setEditingTask(false)
+  }
+
   const onCommentSubmit = async (data: CommentForm) => {
     if (!task) return
 
     setAddingComment(true)
-    try {
-      const newComment = await tasksAPI.addComment(task.id, data)
-      setComments([...comments, newComment])
-      reset()
-      toast.success('Comment added successfully')
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to add comment')
-    } finally {
-      setAddingComment(false)
-    }
+    mutateAddComment(data, {
+      onSuccess: () => {
+        reset()
+      },
+      onSettled: () => {
+        setAddingComment(false)
+      },
+    })
   }
 
   const handleAddAssignee = async (userId: string) => {
@@ -215,7 +266,7 @@ export function TaskDetailPage() {
   const isCreator = task?.creatorId === user?.id
   const isAssignee = task?.assignees.includes(user?.id || '')
 
-  if (loading) return <div className="flex flex-col items-center justify-center py-12"><Spinner size="lg" /><p className="text-muted-foreground mt-4">Loading task...</p></div>
+  if (isLoading) return <div className="flex flex-col items-center justify-center py-12"><Spinner size="lg" /><p className="text-muted-foreground mt-4">Loading task...</p></div>
   if (!task) return <div className="p-6">Task not found</div>
 
   return (
@@ -227,7 +278,11 @@ export function TaskDetailPage() {
         </Link>
         <div className="flex gap-2">
           {isCreator && (
-            <Button variant="destructive" onClick={handleDeleteClick} disabled={deletingTask}>
+            <>
+              <Button variant="outline" onClick={handleEditClick} disabled={editingTask}>
+                Edit
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteClick} disabled={deletingTask}>
               {deletingTask ? (
                 <div className="flex items-center gap-2">
                   <Spinner size="sm" />
@@ -237,6 +292,7 @@ export function TaskDetailPage() {
                 'Delete'
               )}
             </Button>
+            </>
           )}
         </div>
       </div>
@@ -460,6 +516,69 @@ export function TaskDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Edit Task Dialog */}
+      <Dialog open={editingTask} onOpenChange={setEditingTask}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmitEditForm(onEditTaskSubmit)} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Title</label>
+              <input
+                {...registerEditForm('title')}
+                type="text"
+                className="w-full border rounded px-3 py-2 text-sm"
+              />
+              {editErrors.title && <p className="text-red-500 text-sm mt-1">{editErrors.title.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Description</label>
+              <textarea
+                {...registerEditForm('description')}
+                className="w-full border rounded px-3 py-2 text-sm"
+                rows={3}
+              />
+              {editErrors.description && <p className="text-red-500 text-sm mt-1">{editErrors.description.message}</p>}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Priority</label>
+                <select {...registerEditForm('priority')} className="w-full border rounded px-3 py-2 text-sm">
+                  <option value="LOW">Low</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="HIGH">High</option>
+                  <option value="URGENT">Urgent</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Due Date</label>
+                <input {...registerEditForm('dueDate')} type="date" className="w-full border rounded px-3 py-2 text-sm" />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={handleEditCancel} disabled={savingTask}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={savingTask}>
+                {savingTask ? (
+                  <div className="flex items-center gap-2">
+                    <Spinner size="sm" />
+                    <span>Saving...</span>
+                  </div>
+                ) : (
+                  'Save'
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

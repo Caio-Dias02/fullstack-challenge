@@ -4,37 +4,31 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/store/auth'
 import { useTasksStore } from '@/store/tasks'
-import { useToast } from '@/store/toast'
-import { tasksAPI } from '@/api/tasks'
 import { Task } from '@/store/tasks'
 import { Link } from '@tanstack/react-router'
 import { Spinner } from '@/components/spinner'
+import { useTasksList } from '@/hooks/useTasksQuery'
 
 export function TasksPage() {
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
-  const tasks = useTasksStore((state) => state.tasks)
   const setTasks = useTasksStore((state) => state.setTasks)
-  const toast = useToast()
-  const [loading, setLoading] = useState(true)
+
+  // Use TanStack Query hook
+  const { data: tasks = [], isLoading } = useTasksList()
+
   const [selectedStatus, setSelectedStatus] = useState<string>('')
   const [selectedPriority, setSelectedPriority] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState<string>('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 6
 
+  // Sync to Zustand store for compatibility with other components
   useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const data = await tasksAPI.list()
-        setTasks(data)
-      } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Failed to fetch tasks')
-      } finally {
-        setLoading(false)
-      }
+    if (tasks.length > 0) {
+      setTasks(tasks)
     }
-
-    fetchTasks()
-  }, [setTasks])
+  }, [tasks, setTasks])
 
   const getStatusColor = (status: Task['status']) => {
     const colors = {
@@ -63,6 +57,17 @@ export function TasksPage() {
     return matchesStatus && matchesPriority && matchesSearch
   })
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [selectedStatus, selectedPriority, searchQuery])
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredTasks.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedTasks = filteredTasks.slice(startIndex, endIndex)
+
   const clearFilters = () => {
     setSelectedStatus('')
     setSelectedPriority('')
@@ -88,7 +93,7 @@ export function TasksPage() {
       </div>
 
       {/* Search and Filters */}
-      {!loading && tasks.length > 0 && (
+      {!isLoading && tasks.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg">Search & Filters</CardTitle>
@@ -149,7 +154,7 @@ export function TasksPage() {
       )}
 
       {/* Tasks Grid */}
-      {loading ? (
+      {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <Spinner size="lg" />
           <p className="text-muted-foreground mt-4">Loading tasks...</p>
@@ -167,8 +172,9 @@ export function TasksPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredTasks.map((task) => (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {paginatedTasks.map((task) => (
             <Link key={task.id} to={`/tasks/${task.id}`}>
               <Card className="cursor-pointer hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
@@ -192,7 +198,54 @@ export function TasksPage() {
               </Card>
             </Link>
           ))}
-        </div>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Card>
+              <CardContent className="py-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    Page {currentPage} of {totalPages} · Showing {paginatedTasks.length} of {filteredTasks.length} tasks
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      ← Previous
+                    </Button>
+
+                    <div className="flex gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setCurrentPage(page)}
+                          className="w-10"
+                        >
+                          {page}
+                        </Button>
+                      ))}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next →
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
     </div>
   )

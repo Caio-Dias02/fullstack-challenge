@@ -2,14 +2,12 @@ import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { tasksAPI } from '@/api/tasks'
 import { useTasksStore } from '@/store/tasks'
-import { useToast } from '@/store/toast'
 import { Spinner } from '@/components/spinner'
+import { useCreateTask } from '@/hooks/useTasksQuery'
 import { rootRoute } from './__root'
 
 const createTaskSchema = z.object({
@@ -29,8 +27,9 @@ export const Route = createFileRoute('/tasks/new')({
 export function NewTaskPage() {
   const navigate = useNavigate()
   const addTask = useTasksStore((state) => state.addTask)
-  const toast = useToast()
-  const [loading, setLoading] = useState(false)
+
+  // Use TanStack Query mutation
+  const { mutate: createTask, isPending } = useCreateTask()
 
   const {
     register,
@@ -41,18 +40,12 @@ export function NewTaskPage() {
   })
 
   const onSubmit = async (data: CreateTaskForm) => {
-    setLoading(true)
-
-    try {
-      const created = await tasksAPI.create(data)
-      addTask(created)
-      toast.success('Task created successfully')
-      navigate({ to: `/tasks/${created.id}` })
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to create task')
-    } finally {
-      setLoading(false)
-    }
+    createTask(data, {
+      onSuccess: (created: any) => {
+        addTask(created)
+        navigate({ to: `/tasks/${created.id}` })
+      },
+    })
   }
 
   return (
@@ -103,8 +96,8 @@ export function NewTaskPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? (
                 <div className="flex items-center justify-center gap-2">
                   <Spinner size="sm" />
                   <span>Creating...</span>
