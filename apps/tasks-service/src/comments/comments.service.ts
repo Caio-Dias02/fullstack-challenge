@@ -5,6 +5,7 @@ import { Comment } from './entities/comment.entity';
 import { Task } from '../tasks/entities/task.entity';
 import { CreateCommentDto } from '@fullstack-challenge/types/comments/dto/create-comment.dto';
 import { EventsService } from '../events/events.service';
+import { UsersService } from '../tasks/users.service';
 
 @Injectable()
 export class CommentsService {
@@ -16,6 +17,7 @@ export class CommentsService {
     private readonly taskRepo: Repository<Task>,
 
     private readonly eventsService: EventsService,
+    private readonly usersService: UsersService,
   ) {}
 
   async create(dto: CreateCommentDto) {
@@ -48,5 +50,23 @@ export class CommentsService {
       where: { task: { id: taskId } },
       order: { createdAt: 'DESC' },
     });
+  }
+
+  private async enrichCommentWithAuthorData(comment: Comment): Promise<any> {
+    const enriched: any = { ...comment, authorData: null };
+
+    if (comment.authorId) {
+      const authorMap = await this.usersService.getUsersByIds([comment.authorId]);
+      const author = authorMap.get(comment.authorId);
+      if (author) {
+        enriched.authorData = author;
+      }
+    }
+
+    return enriched;
+  }
+
+  async enrichComments(comments: Comment[]): Promise<any[]> {
+    return Promise.all(comments.map((comment) => this.enrichCommentWithAuthorData(comment)));
   }
 }

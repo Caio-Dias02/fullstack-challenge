@@ -203,7 +203,17 @@ export function TaskDetailPage() {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="text-3xl">{task.title}</CardTitle>
-              <CardDescription>Created by {task.creatorId}</CardDescription>
+              <CardDescription>
+                Created by{' '}
+                {(task as any).creatorData ? (
+                  <>
+                    <span className="font-medium">{(task as any).creatorData.username}</span>
+                    <span className="text-xs ml-1">({(task as any).creatorData.email})</span>
+                  </>
+                ) : (
+                  task.creatorId
+                )}
+              </CardDescription>
             </div>
             <div className="flex flex-col gap-2">
               <Badge>{task.priority}</Badge>
@@ -344,8 +354,17 @@ export function TaskDetailPage() {
               <div className="space-y-3">
                 {comments.map((comment) => (
                   <div key={comment.id} className="p-3 bg-muted rounded">
-                    <p className="text-sm font-medium">{comment.authorId}</p>
-                    <p className="text-sm text-muted-foreground">{comment.body}</p>
+                    <div className="text-sm font-medium">
+                      {comment.authorData ? (
+                        <>
+                          <span>{comment.authorData.username}</span>
+                          <span className="text-xs text-gray-500 ml-1">({comment.authorData.email})</span>
+                        </>
+                      ) : (
+                        comment.authorId
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">{comment.body}</p>
                     <p className="text-xs text-muted-foreground mt-1">
                       {new Date(comment.createdAt).toLocaleString()}
                     </p>

@@ -18,10 +18,17 @@ export interface UpdateTaskRequest {
   assignees?: string[]
 }
 
+export interface AuthorData {
+  id: string
+  username: string
+  email: string
+}
+
 export interface Comment {
   id: string
   body: string
   authorId: string
+  authorData?: AuthorData
   taskId: string
   createdAt: string
 }

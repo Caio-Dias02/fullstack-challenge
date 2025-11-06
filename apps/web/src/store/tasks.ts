@@ -14,6 +14,7 @@ export interface Task {
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   dueDate?: string
   creatorId: string
+  creatorData?: AssigneeData
   assignees: string[]
   assigneesData?: AssigneeData[]
   createdAt: string

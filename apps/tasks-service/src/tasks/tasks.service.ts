@@ -103,21 +103,33 @@ export class TasksService {
   }
 
   async enrichTaskWithAssigneeData(task: Task): Promise<any> {
-    if (!task.assignees || task.assignees.length === 0) {
-      return { ...task, assigneesData: [] };
+    const enriched: any = { ...task, assigneesData: [], creatorData: null };
+
+    // Enrich assignees
+    if (task.assignees && task.assignees.length > 0) {
+      const userMap = await this.usersService.getUsersByIds(task.assignees);
+      const assigneesData: UserData[] = [];
+
+      for (const userId of task.assignees) {
+        const userData = userMap.get(userId);
+        if (userData) {
+          assigneesData.push(userData);
+        }
+      }
+
+      enriched.assigneesData = assigneesData;
     }
 
-    const userMap = await this.usersService.getUsersByIds(task.assignees);
-    const assigneesData: UserData[] = [];
-
-    for (const userId of task.assignees) {
-      const userData = userMap.get(userId);
-      if (userData) {
-        assigneesData.push(userData);
+    // Enrich creator
+    if (task.creatorId) {
+      const creatorData = await this.usersService.getUsersByIds([task.creatorId]);
+      const creator = creatorData.get(task.creatorId);
+      if (creator) {
+        enriched.creatorData = creator;
       }
     }
 
-    return { ...task, assigneesData };
+    return enriched;
   }
 
   async enrichTasks(tasks: Task[]): Promise<any[]> {
