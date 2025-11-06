@@ -21,22 +21,22 @@ export interface AuthResponse {
 
 export const authAPI = {
   register: async (data: RegisterRequest): Promise<AuthResponse> => {
-    const res = await apiClient.post('/api/auth/register', data)
+    const res = await apiClient.post('/auth/register', data)
     return res.data
   },
 
   login: async (data: LoginRequest): Promise<AuthResponse> => {
-    const res = await apiClient.post('/api/auth/login', data)
+    const res = await apiClient.post('/auth/login', data)
     return res.data
   },
 
   getMe: async (): Promise<User> => {
-    const res = await apiClient.get('/api/auth/me')
+    const res = await apiClient.get('/auth/me')
     return res.data
   },
 
   refresh: async (): Promise<AuthResponse> => {
-    const res = await apiClient.post('/api/auth/refresh')
+    const res = await apiClient.post('/auth/refresh')
     return res.data
   },
 }
