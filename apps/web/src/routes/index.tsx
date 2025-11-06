@@ -8,6 +8,7 @@ import { Task } from '@/store/tasks'
 import { Link } from '@tanstack/react-router'
 import { Spinner } from '@/components/spinner'
 import { useTasksList } from '@/hooks/useTasksQuery'
+import { Plus, LogOut, Search, Filter, X, Calendar, Users, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export function TasksPage() {
   const user = useAuthStore((state) => state.user)
@@ -32,20 +33,30 @@ export function TasksPage() {
 
   const getStatusColor = (status: Task['status']) => {
     const colors = {
-      TODO: 'bg-gray-100',
-      IN_PROGRESS: 'bg-blue-100',
-      REVIEW: 'bg-purple-100',
-      DONE: 'bg-green-100',
+      TODO: 'bg-slate-100 text-slate-700 border-slate-200',
+      IN_PROGRESS: 'bg-blue-100 text-blue-700 border-blue-200',
+      REVIEW: 'bg-purple-100 text-purple-700 border-purple-200',
+      DONE: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     }
     return colors[status]
   }
 
+  const getStatusLabel = (status: Task['status']) => {
+    const labels = {
+      TODO: 'To Do',
+      IN_PROGRESS: 'In Progress',
+      REVIEW: 'Review',
+      DONE: 'Done',
+    }
+    return labels[status]
+  }
+
   const getPriorityColor = (priority: Task['priority']) => {
     const colors = {
-      LOW: 'outline',
-      MEDIUM: 'secondary',
-      HIGH: 'destructive',
-      URGENT: 'destructive',
+      LOW: 'bg-slate-100 text-slate-600 border-slate-200',
+      MEDIUM: 'bg-amber-100 text-amber-700 border-amber-200',
+      HIGH: 'bg-orange-100 text-orange-700 border-orange-200',
+      URGENT: 'bg-red-100 text-red-700 border-red-200',
     }
     return colors[priority]
   }
@@ -75,18 +86,26 @@ export function TasksPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="min-h-screen space-y-8 p-6 md:p-8 lg:p-10">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Tasks</h1>
-          <p className="text-muted-foreground">Welcome, {user?.username || user?.email}</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900 bg-clip-text text-transparent">
+            Tasks
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Welcome back, <span className="font-semibold text-foreground">{user?.username || user?.email}</span>
+          </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <Link to="/tasks/new">
-            <Button>New Task</Button>
+            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/25 transition-all duration-200">
+              <Plus className="mr-2 h-4 w-4" />
+              New Task
+            </Button>
           </Link>
-          <Button variant="outline" onClick={() => logout()}>
+          <Button variant="outline" onClick={() => logout()} className="hover:bg-slate-100 transition-colors">
+            <LogOut className="mr-2 h-4 w-4" />
             Logout
           </Button>
         </div>
@@ -94,59 +113,71 @@ export function TasksPage() {
 
       {/* Search and Filters */}
       {!isLoading && tasks.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Search & Filters</CardTitle>
+        <Card className="border-slate-200 shadow-md hover:shadow-lg transition-shadow duration-200">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Filter className="h-5 w-5 text-blue-600" />
+              Search & Filters
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium mb-2">Search by title</label>
-                <input
-                  type="text"
-                  placeholder="Search tasks..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full border rounded px-3 py-2 text-sm"
-                />
+                <label className="block text-sm font-semibold mb-2 text-slate-700">Search by title</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search tasks..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full border-2 border-slate-200 rounded-lg px-10 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none bg-white"
+                  />
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-4 items-end">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Status</label>
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="border rounded px-3 py-2 text-sm"
-                >
-                  <option value="">All statuses</option>
-                  <option value="TODO">TODO</option>
-                  <option value="IN_PROGRESS">In Progress</option>
-                  <option value="REVIEW">Review</option>
-                  <option value="DONE">Done</option>
-                </select>
-              </div>
+                <div className="flex-1 min-w-[180px]">
+                  <label className="block text-sm font-semibold mb-2 text-slate-700">Status</label>
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    className="w-full border-2 border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none bg-white cursor-pointer"
+                  >
+                    <option value="">All statuses</option>
+                    <option value="TODO">To Do</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="REVIEW">Review</option>
+                    <option value="DONE">Done</option>
+                  </select>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Priority</label>
-                <select
-                  value={selectedPriority}
-                  onChange={(e) => setSelectedPriority(e.target.value)}
-                  className="border rounded px-3 py-2 text-sm"
-                >
-                  <option value="">All priorities</option>
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
-                  <option value="URGENT">Urgent</option>
-                </select>
-              </div>
+                <div className="flex-1 min-w-[180px]">
+                  <label className="block text-sm font-semibold mb-2 text-slate-700">Priority</label>
+                  <select
+                    value={selectedPriority}
+                    onChange={(e) => setSelectedPriority(e.target.value)}
+                    className="w-full border-2 border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none bg-white cursor-pointer"
+                  >
+                    <option value="">All priorities</option>
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                    <option value="URGENT">Urgent</option>
+                  </select>
+                </div>
 
-              {(selectedStatus || selectedPriority || searchQuery) && (
-                <Button variant="outline" size="sm" onClick={clearFilters}>
-                  Clear filters
-                </Button>
-              )}
+                {(selectedStatus || selectedPriority || searchQuery) && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={clearFilters}
+                    className="hover:bg-slate-100 transition-colors"
+                  >
+                    <X className="mr-2 h-4 w-4" />
+                    Clear filters
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>
@@ -155,44 +186,81 @@ export function TasksPage() {
 
       {/* Tasks Grid */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <Spinner size="lg" />
-          <p className="text-muted-foreground mt-4">Loading tasks...</p>
-        </div>
+        <Card className="border-slate-200 shadow-md">
+          <CardContent className="py-16">
+            <div className="flex flex-col items-center justify-center">
+              <Spinner size="lg" />
+              <p className="text-slate-600 mt-4 font-medium">Loading tasks...</p>
+            </div>
+          </CardContent>
+        </Card>
       ) : tasks.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">No tasks yet. Create one to get started!</p>
+        <Card className="border-slate-200 shadow-md">
+          <CardContent className="py-16 text-center">
+            <div className="space-y-3">
+              <p className="text-slate-600 text-lg font-medium">No tasks yet.</p>
+              <p className="text-slate-500">Create one to get started!</p>
+              <Link to="/tasks/new" className="inline-block mt-4">
+                <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create First Task
+                </Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
       ) : filteredTasks.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">No tasks match the selected filters.</p>
+        <Card className="border-slate-200 shadow-md">
+          <CardContent className="py-16 text-center">
+            <div className="space-y-3">
+              <p className="text-slate-600 text-lg font-medium">No tasks match the selected filters.</p>
+              <Button variant="outline" onClick={clearFilters} className="mt-4">
+                <X className="mr-2 h-4 w-4" />
+                Clear filters
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {paginatedTasks.map((task) => (
             <Link key={task.id} to={`/tasks/${task.id}`}>
-              <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+              <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 border-slate-200 hover:border-blue-300 hover:-translate-y-1 group bg-white">
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg line-clamp-2">{task.title}</CardTitle>
-                    <Badge variant={getPriorityColor(task.priority) as any}>{task.priority}</Badge>
+                  <div className="flex items-start justify-between gap-3">
+                    <CardTitle className="text-lg font-semibold line-clamp-2 group-hover:text-blue-600 transition-colors flex-1">
+                      {task.title}
+                    </CardTitle>
+                    <Badge className={`${getPriorityColor(task.priority)} border font-medium shrink-0`}>
+                      {task.priority}
+                    </Badge>
                   </div>
-                  <Badge className={getStatusColor(task.status)}>{task.status}</Badge>
+                  <div className="mt-2">
+                    <Badge className={`${getStatusColor(task.status)} border font-medium`}>
+                      {getStatusLabel(task.status)}
+                    </Badge>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  {task.description && <p className="text-sm text-muted-foreground line-clamp-2">{task.description}</p>}
-                  {task.dueDate && (
-                    <p className="text-xs text-muted-foreground">
-                      Due: {new Date(task.dueDate).toLocaleDateString()}
+                <CardContent className="space-y-3">
+                  {task.description && (
+                    <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">
+                      {task.description}
                     </p>
                   )}
-                  <div className="text-xs text-muted-foreground">
-                    {task.assignees.length} assignee{task.assignees.length !== 1 ? 's' : ''}
+                  <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
+                    {task.dueDate && (
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <Calendar className="h-3.5 w-3.5" />
+                        <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <Users className="h-3.5 w-3.5" />
+                      <span>
+                        {task.assignees.length} assignee{task.assignees.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -202,20 +270,25 @@ export function TasksPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <Card>
-              <CardContent className="py-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages} · Showing {paginatedTasks.length} of {filteredTasks.length} tasks
+            <Card className="border-slate-200 shadow-md">
+              <CardContent className="py-5">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <p className="text-sm text-slate-600 font-medium">
+                    Page <span className="font-bold text-slate-900">{currentPage}</span> of{' '}
+                    <span className="font-bold text-slate-900">{totalPages}</span> · Showing{' '}
+                    <span className="font-bold text-slate-900">{paginatedTasks.length}</span> of{' '}
+                    <span className="font-bold text-slate-900">{filteredTasks.length}</span> tasks
                   </p>
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                       disabled={currentPage === 1}
+                      className="hover:bg-slate-100 disabled:opacity-50"
                     >
-                      ← Previous
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
                     </Button>
 
                     <div className="flex gap-1">
@@ -225,7 +298,11 @@ export function TasksPage() {
                           variant={currentPage === page ? 'default' : 'outline'}
                           size="sm"
                           onClick={() => setCurrentPage(page)}
-                          className="w-10"
+                          className={`w-10 ${
+                            currentPage === page
+                              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                              : 'hover:bg-slate-100'
+                          }`}
                         >
                           {page}
                         </Button>
@@ -237,8 +314,10 @@ export function TasksPage() {
                       size="sm"
                       onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                       disabled={currentPage === totalPages}
+                      className="hover:bg-slate-100 disabled:opacity-50"
                     >
-                      Next →
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </div>
                 </div>

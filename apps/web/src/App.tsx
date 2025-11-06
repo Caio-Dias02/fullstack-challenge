@@ -47,7 +47,7 @@ const RootLayout = () => {
   }, [token, location.pathname, navigate])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Outlet />
       <ToastContainer />
     </div>
