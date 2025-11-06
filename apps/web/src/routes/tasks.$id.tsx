@@ -210,6 +210,11 @@ export function TaskDetailPage() {
                     <span className="font-medium">{(task as any).creatorData.username}</span>
                     <span className="text-xs ml-1">({(task as any).creatorData.email})</span>
                   </>
+                ) : user?.id === task.creatorId ? (
+                  <>
+                    <span className="font-medium">{user.username}</span>
+                    <span className="text-xs ml-1">({user.email})</span>
+                  </>
                 ) : (
                   task.creatorId
                 )}

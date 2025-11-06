@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { disconnectWebSocket } from '@/lib/websocket'
 
 export interface User {
   id: string
@@ -38,6 +39,7 @@ export const useAuthStore = create<AuthState>((set) => {
     logout: () => {
       set({ user: null, token: null })
       localStorage.removeItem('auth-storage')
+      disconnectWebSocket()
     },
     loadFromStorage,
   }

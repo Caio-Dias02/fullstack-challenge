@@ -2,6 +2,7 @@ import { RouterProvider, createRouter, createBrowserHistory, RootRoute, Route, u
 import { Outlet } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { useAuthStore } from './store/auth'
+import { useWebSocket } from './hooks/useWebSocket'
 import { TasksPage } from './routes/index'
 import { LoginPage } from './routes/login'
 import { RegisterPage } from './routes/register'
@@ -14,6 +15,9 @@ const RootLayout = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const { token } = useAuthStore()
+
+  // Initialize WebSocket connection when authenticated
+  useWebSocket()
 
   // Redirect logic
   useEffect(() => {
