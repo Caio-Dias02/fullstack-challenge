@@ -24,7 +24,7 @@ export const Route = createFileRoute('/tasks/new')({
   component: NewTaskPage,
 })
 
-function NewTaskPage() {
+export function NewTaskPage() {
   const navigate = useNavigate()
   const addTask = useTasksStore((state) => state.addTask)
   const [error, setError] = useState('')

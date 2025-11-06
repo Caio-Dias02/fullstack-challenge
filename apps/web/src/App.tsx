@@ -1,73 +1,70 @@
-import { RouterProvider, createRouter, createBrowserHistory, RootRoute, Route } from '@tanstack/react-router'
+import { RouterProvider, createRouter, createBrowserHistory, RootRoute, Route, useLocation, useNavigate } from '@tanstack/react-router'
 import { Outlet } from '@tanstack/react-router'
-import { lazy, Suspense } from 'react'
+import { useEffect } from 'react'
+import { useAuthStore } from './store/auth'
+import { TasksPage } from './routes/index'
+import { LoginPage } from './routes/login'
+import { RegisterPage } from './routes/register'
+import { NewTaskPage } from './routes/tasks.new'
+import { TaskDetailPage } from './routes/tasks.$id'
 
 // Root layout
-const rootRoute = new RootRoute({
-  component: () => (
+const RootLayout = () => {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { token } = useAuthStore()
+
+  // Redirect logic
+  useEffect(() => {
+    const publicRoutes = ['/login', '/register']
+    const isPublicRoute = publicRoutes.includes(location.pathname)
+
+    if (!token && !isPublicRoute) {
+      navigate({ to: '/login', replace: true })
+    } else if (token && isPublicRoute) {
+      navigate({ to: '/', replace: true })
+    }
+  }, [token, location.pathname, navigate])
+
+  return (
     <div className="min-h-screen bg-background">
       <Outlet />
     </div>
-  ),
+  )
+}
+
+const rootRoute = new RootRoute({
+  component: RootLayout,
 })
-
-// Lazy load pages
-const IndexComponent = lazy(() => import('./routes/index').then(m => ({ default: m.TasksPage })))
-const LoginComponent = lazy(() => import('./routes/login').then(m => ({ default: m.LoginPage })))
-const RegisterComponent = lazy(() => import('./routes/register').then(m => ({ default: m.RegisterPage })))
-const TaskNewComponent = lazy(() => import('./routes/tasks.new').then(m => ({ default: m.NewTaskPage })))
-const TaskDetailComponent = lazy(() => import('./routes/tasks.$id').then(m => ({ default: m.TaskDetailPage })))
-
-const Loading = () => <div className="flex items-center justify-center min-h-screen">Loading...</div>
 
 const indexRoute = new Route({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: () => (
-    <Suspense fallback={<Loading />}>
-      <IndexComponent />
-    </Suspense>
-  ),
+  component: TasksPage,
 })
 
 const loginRoute = new Route({
   getParentRoute: () => rootRoute,
   path: '/login',
-  component: () => (
-    <Suspense fallback={<Loading />}>
-      <LoginComponent />
-    </Suspense>
-  ),
+  component: LoginPage,
 })
 
 const registerRoute = new Route({
   getParentRoute: () => rootRoute,
   path: '/register',
-  component: () => (
-    <Suspense fallback={<Loading />}>
-      <RegisterComponent />
-    </Suspense>
-  ),
+  component: RegisterPage,
 })
 
 const taskNewRoute = new Route({
   getParentRoute: () => rootRoute,
   path: '/tasks/new',
-  component: () => (
-    <Suspense fallback={<Loading />}>
-      <TaskNewComponent />
-    </Suspense>
-  ),
+  component: NewTaskPage,
 })
 
 const taskDetailRoute = new Route({
   getParentRoute: () => rootRoute,
   path: '/tasks/$id',
-  component: () => (
-    <Suspense fallback={<Loading />}>
-      <TaskDetailComponent />
-    </Suspense>
-  ),
+  component: TaskDetailPage,
 })
 
 const routeTree = rootRoute.addChildren([

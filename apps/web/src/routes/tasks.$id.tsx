@@ -23,7 +23,7 @@ export const Route = createFileRoute('/tasks/$id')({
   component: TaskDetailPage,
 })
 
-function TaskDetailPage() {
+export function TaskDetailPage() {
   const { id } = useParams({ from: '/tasks/$id' })
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)

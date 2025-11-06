@@ -10,7 +10,7 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.enableCors({
-    origin: 'http://localhost:3001', // ou a URL do front
+    origin: ['http://localhost:3001', 'http://localhost:5173'], // Frontend + Vite dev
     credentials: true,
   });
 
