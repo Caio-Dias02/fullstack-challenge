@@ -8,6 +8,7 @@ import { useToast } from '@/store/toast'
 import { tasksAPI } from '@/api/tasks'
 import { Task } from '@/store/tasks'
 import { Link } from '@tanstack/react-router'
+import { Spinner } from '@/components/spinner'
 
 export function TasksPage() {
   const user = useAuthStore((state) => state.user)
@@ -72,7 +73,10 @@ export function TasksPage() {
 
       {/* Tasks Grid */}
       {loading ? (
-        <div className="text-center py-12">Loading tasks...</div>
+        <div className="flex flex-col items-center justify-center py-12">
+          <Spinner size="lg" />
+          <p className="text-muted-foreground mt-4">Loading tasks...</p>
+        </div>
       ) : tasks.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">

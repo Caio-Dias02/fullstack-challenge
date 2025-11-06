@@ -12,6 +12,7 @@ import { useToast } from '@/store/toast'
 import { tasksAPI, Comment } from '@/api/tasks'
 import { authAPI, UserSearchResult } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
+import { Spinner } from '@/components/spinner'
 import { rootRoute } from './__root'
 
 const commentSchema = z.object({
@@ -41,6 +42,11 @@ export function TaskDetailPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([])
   const [searching, setSearching] = useState(false)
+  const [deletingTask, setDeletingTask] = useState(false)
+  const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [addingComment, setAddingComment] = useState(false)
+  const [addingAssignee, setAddingAssignee] = useState(false)
+  const [removingAssignee, setRemovingAssignee] = useState<string | null>(null)
 
   const {
     register,
@@ -96,6 +102,7 @@ export function TaskDetailPage() {
   const handleStatusChange = async (newStatus: any) => {
     if (!task) return
 
+    setUpdatingStatus(true)
     try {
       const updated = await tasksAPI.update(task.id, { status: newStatus })
       setTask(updated)
@@ -104,6 +111,8 @@ export function TaskDetailPage() {
       toast.success('Task status updated')
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to update status')
+    } finally {
+      setUpdatingStatus(false)
     }
   }
 
@@ -112,6 +121,7 @@ export function TaskDetailPage() {
 
     if (!confirm('Are you sure you want to delete this task?')) return
 
+    setDeletingTask(true)
     try {
       await tasksAPI.delete(task.id)
       deleteTask(task.id)
@@ -119,12 +129,15 @@ export function TaskDetailPage() {
       navigate({ to: '/' })
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to delete task')
+    } finally {
+      setDeletingTask(false)
     }
   }
 
   const onCommentSubmit = async (data: CommentForm) => {
     if (!task) return
 
+    setAddingComment(true)
     try {
       const newComment = await tasksAPI.addComment(task.id, data)
       setComments([...comments, newComment])
@@ -132,6 +145,8 @@ export function TaskDetailPage() {
       toast.success('Comment added successfully')
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to add comment')
+    } finally {
+      setAddingComment(false)
     }
   }
 
@@ -146,6 +161,7 @@ export function TaskDetailPage() {
       return
     }
 
+    setAddingAssignee(true)
     try {
       const updated = await tasksAPI.update(task.id, {
         assignees: [...task.assignees, userId],
@@ -157,12 +173,15 @@ export function TaskDetailPage() {
       toast.success('Assignee added')
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to add assignee')
+    } finally {
+      setAddingAssignee(false)
     }
   }
 
   const handleRemoveAssignee = async (assigneeId: string) => {
     if (!task) return
 
+    setRemovingAssignee(assigneeId)
     try {
       const updated = await tasksAPI.update(task.id, {
         assignees: task.assignees.filter((id) => id !== assigneeId),
@@ -172,13 +191,15 @@ export function TaskDetailPage() {
       toast.success('Assignee removed')
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to remove assignee')
+    } finally {
+      setRemovingAssignee(null)
     }
   }
 
   const isCreator = task?.creatorId === user?.id
   const isAssignee = task?.assignees.includes(user?.id || '')
 
-  if (loading) return <div className="p-6">Loading...</div>
+  if (loading) return <div className="flex flex-col items-center justify-center py-12"><Spinner size="lg" /><p className="text-muted-foreground mt-4">Loading task...</p></div>
   if (!task) return <div className="p-6">Task not found</div>
 
   return (
@@ -190,8 +211,15 @@ export function TaskDetailPage() {
         </Link>
         <div className="flex gap-2">
           {isCreator && (
-            <Button variant="destructive" onClick={handleDeleteTask}>
-              Delete
+            <Button variant="destructive" onClick={handleDeleteTask} disabled={deletingTask}>
+              {deletingTask ? (
+                <div className="flex items-center gap-2">
+                  <Spinner size="sm" />
+                  <span>Deleting...</span>
+                </div>
+              ) : (
+                'Delete'
+              )}
             </Button>
           )}
         </div>
@@ -230,8 +258,16 @@ export function TaskDetailPage() {
                       size="sm"
                       variant={task.status === status ? 'default' : 'outline'}
                       onClick={() => handleStatusChange(status)}
+                      disabled={updatingStatus}
                     >
-                      {status}
+                      {updatingStatus ? (
+                        <div className="flex items-center gap-2">
+                          <Spinner size="sm" />
+                          <span>{status}</span>
+                        </div>
+                      ) : (
+                        status
+                      )}
                     </Button>
                   ))}
                 </div>
@@ -306,8 +342,16 @@ export function TaskDetailPage() {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleRemoveAssignee(assignee.id)}
+                            disabled={removingAssignee === assignee.id}
                           >
-                            Remove
+                            {removingAssignee === assignee.id ? (
+                              <div className="flex items-center gap-2">
+                                <Spinner size="sm" />
+                                <span>Removing...</span>
+                              </div>
+                            ) : (
+                              'Remove'
+                            )}
                           </Button>
                         </div>
                       ))}
@@ -386,8 +430,15 @@ export function TaskDetailPage() {
                 rows={3}
               />
               {errors.body && <p className="text-red-500 text-sm">{errors.body.message}</p>}
-              <Button type="submit" size="sm">
-                Add Comment
+              <Button type="submit" size="sm" disabled={addingComment}>
+                {addingComment ? (
+                  <div className="flex items-center gap-2">
+                    <Spinner size="sm" />
+                    <span>Adding...</span>
+                  </div>
+                ) : (
+                  'Add Comment'
+                )}
               </Button>
             </form>
           </CardContent>

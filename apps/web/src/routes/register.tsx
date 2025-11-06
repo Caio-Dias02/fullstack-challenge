@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuthStore } from '@/store/auth'
 import { useToast } from '@/store/toast'
 import { authAPI } from '@/api/auth'
+import { Spinner } from '@/components/spinner'
 import { rootRoute } from './__root'
 
 const registerSchema = z.object({
@@ -88,7 +89,14 @@ export function RegisterPage() {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating account...' : 'Register'}
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Spinner size="sm" />
+                  <span>Creating account...</span>
+                </div>
+              ) : (
+                'Register'
+              )}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">

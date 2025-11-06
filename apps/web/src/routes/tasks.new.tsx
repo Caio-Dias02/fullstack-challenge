@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { tasksAPI } from '@/api/tasks'
 import { useTasksStore } from '@/store/tasks'
 import { useToast } from '@/store/toast'
+import { Spinner } from '@/components/spinner'
 import { rootRoute } from './__root'
 
 const createTaskSchema = z.object({
@@ -103,7 +104,14 @@ export function NewTaskPage() {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Task'}
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Spinner size="sm" />
+                  <span>Creating...</span>
+                </div>
+              ) : (
+                'Create Task'
+              )}
             </Button>
           </form>
         </CardContent>
