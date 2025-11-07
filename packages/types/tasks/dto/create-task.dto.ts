@@ -6,11 +6,13 @@ class IsFutureDate implements ValidatorConstraintInterface {
   validate(value: any) {
     if (!value) return true;
     const date = new Date(value);
-    return date > new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date >= today;
   }
 
   defaultMessage() {
-    return 'dueDate must be a future date';
+    return 'dueDate must be today or in the future';
   }
 }
 

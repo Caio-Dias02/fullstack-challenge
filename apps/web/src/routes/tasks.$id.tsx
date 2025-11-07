@@ -33,7 +33,16 @@ const editTaskSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
   description: z.string().max(2000, 'Description too long').optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
-  dueDate: z.string().optional(),
+  dueDate: z.string().optional().refine(
+    (date) => {
+      if (!date) return true // optional field
+      const selectedDate = new Date(date)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      return selectedDate >= today
+    },
+    'Due date must be today or in the future'
+  ),
 })
 
 type EditTaskForm = z.infer<typeof editTaskSchema>
