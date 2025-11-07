@@ -10,6 +10,7 @@ export const tasksQueryKeys = {
   details: () => [...tasksQueryKeys.all, 'detail'] as const,
   detail: (id: string) => [...tasksQueryKeys.details(), id] as const,
   comments: (taskId: string) => [...tasksQueryKeys.detail(taskId), 'comments'] as const,
+  history: (taskId: string) => [...tasksQueryKeys.detail(taskId), 'history'] as const,
 }
 
 /**
@@ -149,5 +150,24 @@ export const useAddComment = (taskId: string) => {
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'Failed to add comment')
     },
+  })
+}
+
+/**
+ * Fetch task history/audit log
+ */
+export const useTaskHistory = (taskId: string) => {
+  const toast = useToast()
+  return useQuery({
+    queryKey: tasksQueryKeys.history(taskId),
+    queryFn: async () => {
+      try {
+        return await tasksAPI.getHistory(taskId)
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Failed to load history')
+        throw err
+      }
+    },
+    enabled: !!taskId,
   })
 }

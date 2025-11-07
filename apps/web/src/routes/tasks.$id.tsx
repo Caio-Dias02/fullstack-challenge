@@ -21,7 +21,7 @@ import { tasksAPI } from '@/api/tasks'
 import { authAPI, UserSearchResult } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
 import { Spinner } from '@/components/spinner'
-import { useTaskDetail, useTaskComments, useUpdateTask, useDeleteTask, useAddComment } from '@/hooks/useTasksQuery'
+import { useTaskDetail, useTaskComments, useUpdateTask, useDeleteTask, useAddComment, useTaskHistory } from '@/hooks/useTasksQuery'
 
 const commentSchema = z.object({
   body: z.string().min(1, 'Comment is required').max(1000, 'Comment too long'),
@@ -62,6 +62,7 @@ export function TaskDetailPage() {
   // TanStack Query hooks
   const { data: task, isLoading } = useTaskDetail(id)
   const { data: comments = [] } = useTaskComments(id)
+  const { data: history = [] } = useTaskHistory(id)
   const { mutate: mutateUpdateTask } = useUpdateTask(id)
   const { mutate: mutateDeleteTask } = useDeleteTask()
   const { mutate: mutateAddComment } = useAddComment(id)
@@ -546,6 +547,60 @@ export function TaskDetailPage() {
                 )}
               </Button>
             </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* History Section */}
+      {(isCreator || isAssignee) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Change History</CardTitle>
+            <CardDescription>Track all changes made to this task</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {history.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No changes yet</p>
+            ) : (
+              <div className="space-y-3">
+                {history.map((entry: any) => (
+                  <div key={entry.id} className="p-3 bg-muted rounded border-l-4 border-l-blue-500">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-sm font-semibold">
+                          <span className="capitalize">{entry.field}</span> changed
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          By: {entry.changedByData ? (
+                            <>
+                              <span>{entry.changedByData.username}</span>
+                              <span className="ml-1">({entry.changedByData.email})</span>
+                            </>
+                          ) : (
+                            entry.changedBy
+                          )}
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(entry.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="mt-2 space-y-1">
+                      {entry.oldValue !== undefined && entry.oldValue !== null && entry.oldValue !== '' && (
+                        <p className="text-xs">
+                          <span className="text-red-600">From:</span> <span className="line-through">{entry.oldValue}</span>
+                        </p>
+                      )}
+                      {entry.newValue !== undefined && entry.newValue !== null && entry.newValue !== '' && (
+                        <p className="text-xs">
+                          <span className="text-green-600">To:</span> <span className="font-medium">{entry.newValue}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

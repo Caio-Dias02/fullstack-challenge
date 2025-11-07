@@ -37,6 +37,19 @@ export interface CreateCommentRequest {
   body: string
 }
 
+export interface TaskHistory {
+  id: string
+  changedBy: string
+  changedByData?: {
+    username: string
+    email: string
+  }
+  field: string
+  oldValue?: string
+  newValue?: string
+  createdAt: string
+}
+
 export const tasksAPI = {
   list: async (): Promise<Task[]> => {
     const res = await apiClient.get('/tasks')
@@ -69,6 +82,11 @@ export const tasksAPI = {
 
   addComment: async (taskId: string, data: CreateCommentRequest): Promise<Comment> => {
     const res = await apiClient.post(`/tasks/${taskId}/comments`, data)
+    return res.data
+  },
+
+  getHistory: async (taskId: string): Promise<TaskHistory[]> => {
+    const res = await apiClient.get(`/tasks/${taskId}/history`)
     return res.data
   },
 }

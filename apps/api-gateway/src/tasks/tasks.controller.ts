@@ -90,4 +90,15 @@ export class TasksController implements OnModuleInit {
     const userId = req.user.sub;
     return await this.client.send({ cmd: 'delete_task' }, { id, userId }).toPromise();
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/history')
+  @ApiOperation({ summary: 'Get task change history/audit log' })
+  @ApiParam({ name: 'id', description: 'Task ID' })
+  @ApiResponse({ status: 200, description: 'Task history retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Task not found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getHistory(@Param('id') id: string) {
+    return await this.client.send({ cmd: 'get_task_history' }, { id }).toPromise();
+  }
 }

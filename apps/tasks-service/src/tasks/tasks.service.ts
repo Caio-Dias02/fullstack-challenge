@@ -84,12 +84,15 @@ export class TasksService {
     for (const key of Object.keys(dto)) {
       if (before[key] !== dto[key]) {
         changes[key] = { old: before[key], new: dto[key] };
+        // Convert arrays to JSON strings for storage
+        const oldValue = Array.isArray(before[key]) ? JSON.stringify(before[key]) : String(before[key]);
+        const newValue = Array.isArray(dto[key]) ? JSON.stringify(dto[key]) : String(dto[key]);
         await this.taskHistoryService.registerChange(
           task.id,
           userId || "system",
           key,
-          before[key],
-          dto[key]
+          oldValue,
+          newValue
         );
       }
     }
@@ -154,5 +157,9 @@ export class TasksService {
 
   async enrichTasks(tasks: Task[]): Promise<any[]> {
     return Promise.all(tasks.map((task) => this.enrichTaskWithAssigneeData(task)));
+  }
+
+  async getHistory(taskId: string) {
+    return await this.taskHistoryService.findByTask(taskId);
   }
 }

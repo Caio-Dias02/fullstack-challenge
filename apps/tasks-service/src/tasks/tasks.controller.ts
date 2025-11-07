@@ -74,4 +74,9 @@ export class TasksController {
       throw error;
     }
   }
+
+  @MessagePattern({ cmd: 'get_task_history' })
+  async getTaskHistory(@Payload() data: { id: string }) {
+    return await this.tasksService.getHistory(data.id);
+  }
 }

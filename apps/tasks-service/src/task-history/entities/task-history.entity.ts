@@ -1,6 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
 import { Task } from '../../tasks/entities/task.entity';
 
+export interface UserDataResponse {
+  username: string;
+  email: string;
+}
+
 @Entity('task_history')
 export class TaskHistory {
   @PrimaryGeneratedColumn('uuid')
@@ -23,4 +28,7 @@ export class TaskHistory {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  // Enriched data (not stored in DB)
+  changedByData?: UserDataResponse;
 }
