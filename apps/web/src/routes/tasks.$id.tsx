@@ -166,11 +166,18 @@ export function TaskDetailPage() {
       onSuccess: () => {
         deleteTask(task.id)
         setShowDeleteDialog(false)
-        navigate({ to: '/' })
+        // Redirect immediately to avoid refetch errors
+        toast.success('Task deleted successfully')
+        setTimeout(() => {
+          navigate({ to: '/' })
+        }, 300)
       },
       onSettled: () => {
         setDeletingTask(false)
       },
+      onError: (err: any) => {
+        toast.error(err.response?.data?.message || 'Failed to delete task')
+      }
     })
   }
 

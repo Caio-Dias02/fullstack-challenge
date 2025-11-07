@@ -47,14 +47,6 @@ export const useWebSocket = () => {
       queryClient.invalidateQueries({ queryKey: tasksQueryKeys.lists() })
     })
 
-    // Listen for task:deleted
-    socket.on('task:deleted', (event: any) => {
-      console.log('📬 Received task:deleted:', event.taskId)
-      toast.info(`Task deleted`)
-      // Invalidate all task queries to refetch
-      queryClient.invalidateQueries({ queryKey: tasksQueryKeys.all })
-    })
-
     // Listen for comment:new
     socket.on('comment:new', (event: any) => {
       console.log('📬 Received comment:new:', event.taskId)
