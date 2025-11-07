@@ -1,15 +1,15 @@
 import { useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { connectWebSocket, disconnectWebSocket } from '@/lib/websocket'
 import { useAuthStore } from '@/store/auth'
-import { useTasksStore } from '@/store/tasks'
 import { useToast } from '@/store/toast'
-import { tasksAPI } from '@/api/tasks'
+import { tasksQueryKeys } from './useTasksQuery'
 
 export const useWebSocket = () => {
   const user = useAuthStore((state) => state.user)
   const token = useAuthStore((state) => state.token)
-  const setTasks = useTasksStore((state) => state.setTasks)
   const toast = useToast()
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     if (!user || !token) {
@@ -20,16 +20,6 @@ export const useWebSocket = () => {
     // Connect to WebSocket
     const socket = connectWebSocket(user.id, token)
 
-    // Helper to refresh tasks
-    const refreshTasks = async () => {
-      try {
-        const data = await tasksAPI.list()
-        setTasks(data)
-      } catch (err) {
-        console.error('Failed to refresh tasks:', err)
-      }
-    }
-
     // Remove old listeners to avoid duplicates
     socket.off('task:created')
     socket.off('task:updated')
@@ -39,7 +29,8 @@ export const useWebSocket = () => {
     socket.on('task:created', (event: any) => {
       console.log('📬 Received task:created:', event.title)
       toast.success(`New task created: ${event.title}`)
-      refreshTasks()
+      // Invalidate all task queries to refetch
+      queryClient.invalidateQueries({ queryKey: tasksQueryKeys.all })
     })
 
     // Listen for task:updated
@@ -50,14 +41,17 @@ export const useWebSocket = () => {
       if (changedFields.length > 0) {
         toast.info(`Task updated: ${changedFields.join(', ')}`)
       }
-      refreshTasks()
+      // Invalidate task detail and list queries
+      queryClient.invalidateQueries({ queryKey: tasksQueryKeys.detail(event.taskId) })
+      queryClient.invalidateQueries({ queryKey: tasksQueryKeys.lists() })
     })
 
     // Listen for comment:new
     socket.on('comment:new', (event: any) => {
       console.log('📬 Received comment:new:', event.taskId)
       toast.info(`New comment on task`)
-      refreshTasks()
+      // Invalidate comments for this task
+      queryClient.invalidateQueries({ queryKey: tasksQueryKeys.comments(event.taskId) })
     })
 
     // Cleanup on unmount
@@ -67,5 +61,5 @@ export const useWebSocket = () => {
       socket.off('task:updated')
       socket.off('comment:new')
     }
-  }, [user, token, setTasks, toast])
+  }, [user, token, toast, queryClient])
 }
