@@ -1,154 +1,189 @@
-version: '3.8'
-
 services:
-  # PostgreSQL para Auth Service
-  postgres-auth:
-    image: postgres:15-alpine
-    container_name: fullstack-postgres-auth
-    environment:
-      POSTGRES_DB: auth_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-auth-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - fullstack-network
-
-  # PostgreSQL para Tasks Service
-  postgres-tasks:
-    image: postgres:15-alpine
-    container_name: fullstack-postgres-tasks
-    environment:
-      POSTGRES_DB: tasks_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres-tasks-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - fullstack-network
-
-  # RabbitMQ
-  rabbitmq:
-    image: rabbitmq:3.12-management-alpine
-    container_name: fullstack-rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - fullstack-network
-
-  # Auth Service
-  auth-service:
+  # Frontend React Application
+  web:
+    container_name: web
     build:
       context: .
-      dockerfile: ./apps/auth-service/Dockerfile
-    container_name: fullstack-auth-service
-    environment:
-      NODE_ENV: development
-      PORT: 3001
-      DATABASE_URL: postgresql://postgres:postgres@postgres-auth:5432/auth_db
-      JWT_SECRET: ${JWT_SECRET:-supersecretkey}
-      JWT_EXPIRES_IN: 15m
-      REFRESH_TOKEN_EXPIRES_IN: 7d
+      dockerfile: ./apps/web/Dockerfile
+      target: development
     ports:
-      - "3001:3001"
-    depends_on:
-      postgres-auth:
-        condition: service_healthy
-    networks:
-      - fullstack-network
-
-  # Tasks Service
-  tasks-service:
-    build:
-      context: .
-      dockerfile: ./apps/tasks-service/Dockerfile
-    container_name: fullstack-tasks-service
+      - "5173:5173"
     environment:
-      NODE_ENV: development
-      PORT: 3002
-      DATABASE_URL: postgresql://postgres:postgres@postgres-tasks:5432/tasks_db
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
-      RABBITMQ_TASKS_QUEUE: task_commands
-    ports:
-      - "3002:3002"
-    depends_on:
-      postgres-tasks:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
+      - NODE_ENV=development
+      - VITE_API_GATEWAY_URL=http://localhost:3001/api
+      - VITE_API_WEBSOCKET_URL=ws://localhost:3004
     networks:
-      - fullstack-network
-
-  # Notifications Service
-  notifications-service:
-    build:
-      context: .
-      dockerfile: ./apps/notifications-service/Dockerfile
-    container_name: fullstack-notifications-service
-    environment:
-      NODE_ENV: development
-      PORT: 3003
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
-    ports:
-      - "3003:3003"
+      - challenge-network
+    command: npm run dev -- --host 0.0.0.0
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - fullstack-network
+      - api-gateway
 
   # API Gateway
   api-gateway:
+    container_name: api-gateway
     build:
       context: .
       dockerfile: ./apps/api-gateway/Dockerfile
-    container_name: fullstack-api-gateway
-    environment:
-      NODE_ENV: development
-      PORT: 3000
-      JWT_SECRET: ${JWT_SECRET:-supersecretkey}
-      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
-      RABBITMQ_TASKS_QUEUE: task_commands
+      target: development
     ports:
-      - "3000:3000"
+      - "3001:3001"
+    volumes:
+      - .:/usr/src/app
+      - ./packages:/usr/src/app/packages
+      - /usr/src/app/node_modules
+      - /usr/src/app/apps/api-gateway/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
+      - JWT_SECRET=your-secret-key-here
     depends_on:
-      - auth-service
-      - tasks-service
-      - notifications-service
-      - rabbitmq
+      auth-db:
+        condition: service_started
+      tasks-db:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
     networks:
-      - fullstack-network
+      - challenge-network
+
+  # Auth Service
+  auth-service:
+    container_name: auth-service
+    build:
+      context: .
+      dockerfile: ./apps/auth-service/Dockerfile
+      target: development
+    ports:
+      - "3002:3002"
+    volumes:
+      - .:/usr/src/app
+      - ./packages:/usr/src/app/packages
+      - /usr/src/app/node_modules
+      - /usr/src/app/apps/auth-service/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
+      - DATABASE_URL=postgresql://postgres:password@auth-db:5432/auth_db
+      - JWT_SECRET=your-secret-key-here
+      - JWT_EXPIRES_IN=15m
+      - REFRESH_TOKEN_EXPIRES_IN=7d
+    depends_on:
+      auth-db:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    networks:
+      - challenge-network
+
+  # Tasks Service
+  tasks-service:
+    container_name: tasks-service
+    build:
+      context: .
+      dockerfile: ./apps/tasks-service/Dockerfile
+      target: development
+    ports:
+      - "3003:3003"
+    volumes:
+      - .:/usr/src/app
+      - ./packages:/usr/src/app/packages
+      - /usr/src/app/node_modules
+      - /usr/src/app/apps/tasks-service/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
+      - DATABASE_URL=postgresql://postgres:password@tasks-db:5432/tasks_db
+    depends_on:
+      tasks-db:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    networks:
+      - challenge-network
+
+  # Notifications Service
+  notifications-service:
+    container_name: notifications-service
+    build:
+      context: .
+      dockerfile: ./apps/notifications-service/Dockerfile
+      target: development
+    ports:
+      - "3004:3004"
+    volumes:
+      - .:/usr/src/app
+      - ./packages:/usr/src/app/packages
+      - /usr/src/app/node_modules
+      - /usr/src/app/apps/notifications-service/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3004
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_started
+    networks:
+      - challenge-network
+
+  # Auth Database
+  auth-db:
+    image: postgres:17.5-alpine3.21
+    container_name: auth-db
+    ports:
+      - "5432:5432"
+    networks:
+      - challenge-network
+    restart: always
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: auth_db
+
+  # Tasks Database
+  tasks-db:
+    image: postgres:17.5-alpine3.21
+    container_name: tasks-db
+    ports:
+      - "5431:5432"
+    networks:
+      - challenge-network
+    restart: always
+    volumes:
+      - postgres_tasks_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: tasks_db
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - challenge-network
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
 
 volumes:
-  postgres-auth-data:
-  postgres-tasks-data:
-  rabbitmq-data:
+  postgres_auth_data:
+    driver: local
+  postgres_tasks_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
 
 networks:
-  fullstack-network:
+  challenge-network:
     driver: bridge

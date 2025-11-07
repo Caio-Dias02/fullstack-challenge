@@ -1,27 +1,30 @@
-# Build stage
-FROM node:18-alpine AS builder
+FROM node:24 AS base
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-COPY package.json pnpm-lock.yaml ./
+# Copy workspace files first
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/ ./packages/
 
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+# Install pnpm and nestjs-cli
+RUN npm install -g pnpm @nestjs/cli
 
-COPY . .
+# Install dependencies
+RUN pnpm install --frozen-lockfile
 
-RUN pnpm build --filter=@fullstack-challenge/notifications-service
+# Development stage
+FROM base AS development
+COPY apps/notifications-service/ ./apps/notifications-service/
+WORKDIR /usr/src/app/apps/notifications-service
+RUN pnpm install
+EXPOSE 3004
+CMD ["npm", "run", "dev"]
 
-# Runtime stage
-FROM node:18-alpine
-
-WORKDIR /app
-
-COPY package.json pnpm-lock.yaml ./
-
-RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile
-
-COPY --from=builder /app/dist/apps/notifications-service ./dist
-
-EXPOSE 3003
-
-CMD ["node", "dist/main.js"]
+# Production stage
+FROM base AS production
+COPY apps/notifications-service/ ./apps/notifications-service/
+WORKDIR /usr/src/app/apps/notifications-service
+RUN pnpm install
+RUN npm run build
+EXPOSE 3004
+CMD ["node", "dist/main"]

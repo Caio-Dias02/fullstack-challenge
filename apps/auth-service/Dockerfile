@@ -1,27 +1,30 @@
-# Build stage
-FROM node:18-alpine AS builder
+FROM node:24 AS base
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-COPY package.json pnpm-lock.yaml ./
+# Copy workspace files first
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/ ./packages/
 
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+# Install pnpm and nestjs-cli
+RUN npm install -g pnpm @nestjs/cli
 
-COPY . .
+# Install dependencies
+RUN pnpm install --frozen-lockfile
 
-RUN pnpm build --filter=@fullstack-challenge/auth-service
+# Development stage
+FROM base AS development
+COPY apps/auth-service/ ./apps/auth-service/
+WORKDIR /usr/src/app/apps/auth-service
+RUN pnpm install
+EXPOSE 3002
+CMD ["npm", "run", "start:dev"]
 
-# Runtime stage
-FROM node:18-alpine
-
-WORKDIR /app
-
-COPY package.json pnpm-lock.yaml ./
-
-RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile
-
-COPY --from=builder /app/dist/apps/auth-service ./dist
-
-EXPOSE 3001
-
-CMD ["node", "dist/main.js"]
+# Production stage
+FROM base AS production
+COPY apps/auth-service/ ./apps/auth-service/
+WORKDIR /usr/src/app/apps/auth-service
+RUN pnpm install
+RUN npm run build
+EXPOSE 3002
+CMD ["node", "dist/main"]
