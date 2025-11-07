@@ -9,9 +9,10 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
     app.use(cookieParser());
+    app.setGlobalPrefix('api');
 
     app.enableCors({
-      origin: ['http://localhost:3001', 'http://localhost:5173'],
+      origin: ['http://localhost:5173'],
       credentials: true,
       methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],

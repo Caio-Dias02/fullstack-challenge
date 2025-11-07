@@ -10,7 +10,7 @@ services:
       - "5173:5173"
     environment:
       - NODE_ENV=development
-      - VITE_API_GATEWAY_URL=http://localhost:3001/api
+      - VITE_API_URL=http://localhost:3001/api
       - VITE_API_WEBSOCKET_URL=ws://localhost:3004
     networks:
       - challenge-network
@@ -29,9 +29,8 @@ services:
       - "3001:3001"
     volumes:
       - .:/usr/src/app
-      - ./packages:/usr/src/app/packages
-      - /usr/src/app/node_modules
-      - /usr/src/app/apps/api-gateway/node_modules
+      - api_gateway_node_modules:/usr/src/app/apps/api-gateway/node_modules
+      - root_node_modules:/usr/src/app/node_modules
     environment:
       - NODE_ENV=development
       - PORT=3001
@@ -58,9 +57,8 @@ services:
       - "3002:3002"
     volumes:
       - .:/usr/src/app
-      - ./packages:/usr/src/app/packages
-      - /usr/src/app/node_modules
-      - /usr/src/app/apps/auth-service/node_modules
+      - auth_service_node_modules:/usr/src/app/apps/auth-service/node_modules
+      - root_node_modules:/usr/src/app/node_modules
     environment:
       - NODE_ENV=development
       - PORT=3002
@@ -88,9 +86,8 @@ services:
       - "3003:3003"
     volumes:
       - .:/usr/src/app
-      - ./packages:/usr/src/app/packages
-      - /usr/src/app/node_modules
-      - /usr/src/app/apps/tasks-service/node_modules
+      - tasks_service_node_modules:/usr/src/app/apps/tasks-service/node_modules
+      - root_node_modules:/usr/src/app/node_modules
     environment:
       - NODE_ENV=development
       - PORT=3003
@@ -115,9 +112,8 @@ services:
       - "3004:3004"
     volumes:
       - .:/usr/src/app
-      - ./packages:/usr/src/app/packages
-      - /usr/src/app/node_modules
-      - /usr/src/app/apps/notifications-service/node_modules
+      - notifications_service_node_modules:/usr/src/app/apps/notifications-service/node_modules
+      - root_node_modules:/usr/src/app/node_modules
     environment:
       - NODE_ENV=development
       - PORT=3004
@@ -182,6 +178,16 @@ volumes:
   postgres_tasks_data:
     driver: local
   rabbitmq_data:
+    driver: local
+  api_gateway_node_modules:
+    driver: local
+  auth_service_node_modules:
+    driver: local
+  tasks_service_node_modules:
+    driver: local
+  notifications_service_node_modules:
+    driver: local
+  root_node_modules:
     driver: local
 
 networks:

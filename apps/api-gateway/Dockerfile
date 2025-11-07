@@ -15,8 +15,9 @@ RUN pnpm install --frozen-lockfile
 # Development stage
 FROM base AS development
 COPY apps/api-gateway/ ./apps/api-gateway/
+WORKDIR /usr/src/app
+RUN pnpm install --no-frozen-lockfile
 WORKDIR /usr/src/app/apps/api-gateway
-RUN pnpm install
 EXPOSE 3001
 CMD ["npm", "run", "dev"]
 
@@ -24,7 +25,6 @@ CMD ["npm", "run", "dev"]
 FROM base AS production
 COPY apps/api-gateway/ ./apps/api-gateway/
 WORKDIR /usr/src/app/apps/api-gateway
-RUN pnpm install
 RUN npm run build
 EXPOSE 3001
-CMD ["node", "dist/main"]
+CMD ["node", "dist/main.js"]

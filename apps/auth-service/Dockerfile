@@ -15,8 +15,9 @@ RUN pnpm install --frozen-lockfile
 # Development stage
 FROM base AS development
 COPY apps/auth-service/ ./apps/auth-service/
+WORKDIR /usr/src/app
+RUN pnpm install --no-frozen-lockfile
 WORKDIR /usr/src/app/apps/auth-service
-RUN pnpm install
 EXPOSE 3002
 CMD ["npm", "run", "start:dev"]
 
@@ -24,7 +25,6 @@ CMD ["npm", "run", "start:dev"]
 FROM base AS production
 COPY apps/auth-service/ ./apps/auth-service/
 WORKDIR /usr/src/app/apps/auth-service
-RUN pnpm install
 RUN npm run build
 EXPOSE 3002
-CMD ["node", "dist/main"]
+CMD ["node", "dist/main.js"]
