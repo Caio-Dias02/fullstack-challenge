@@ -26,24 +26,36 @@ export class TasksService {
     const task = this.taskRepo.create(dto);
     const saved = await this.taskRepo.save(task);
 
-    // Publish event
-    this.eventsService.publishTaskCreated(saved);
+    // Publish event (fire and forget)
+    try {
+      this.eventsService.publishTaskCreated(saved);
+    } catch (error) {
+      console.error('⚠️ Failed to publish task created event:', error);
+    }
 
     return saved;
   }
 
   async findAll(userId?: string) {
-    if (!userId) {
-      return this.taskRepo.find();
-    }
+    try {
+      if (!userId) {
+        return await this.taskRepo.find();
+      }
 
-    // Filter tasks where user is creator OR in assignees
-    return this.taskRepo
-      .createQueryBuilder('task')
-      .where('task.creatorId = :userId', { userId })
-      .orWhere(':userId = ANY(task.assignees)', { userId })
-      .orderBy('task.createdAt', 'DESC')
-      .getMany();
+      // Filter tasks where user is creator OR in assignees
+      const tasks = await this.taskRepo
+        .createQueryBuilder('task')
+        .where('task.creatorId = :userId', { userId })
+        .orWhere(':userId = ANY(task.assignees)', { userId })
+        .orderBy('task.createdAt', 'DESC')
+        .getMany();
+
+      console.log(`📋 Found ${tasks.length} tasks for user ${userId}`);
+      return tasks;
+    } catch (error) {
+      console.error('❌ Error fetching tasks:', error);
+      throw error;
+    }
   }
 
   async findOne(id: string) {
@@ -82,9 +94,13 @@ export class TasksService {
       }
     }
 
-    // Publish event only if there were changes
+    // Publish event only if there were changes (fire and forget)
     if (Object.keys(changes).length > 0) {
-      this.eventsService.publishTaskUpdated(id, changes, userId || "system");
+      try {
+        await this.eventsService.publishTaskUpdated(id, changes, userId || "system");
+      } catch (error) {
+        console.error('⚠️ Failed to publish task updated event:', error);
+      }
     }
 
     return updated;
@@ -99,6 +115,10 @@ export class TasksService {
     }
 
     await this.taskRepo.delete(task.id);
+
+    // Publish event (fire and forget - don't await)
+    this.eventsService.publishTaskDeleted(id, userId);
+
     return { message: "Task deleted successfully", id: task.id };
   }
 

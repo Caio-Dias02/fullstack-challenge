@@ -65,6 +65,13 @@ export class TasksController {
 
   @MessagePattern({ cmd: 'delete_task' })
   async deleteTask(@Payload() data: { id: string; userId: string }) {
-    return await this.tasksService.remove(data.id, data.userId);
+    try {
+      const result = await this.tasksService.remove(data.id, data.userId);
+      console.log('✅ Delete task successful:', data.id);
+      return result;
+    } catch (error) {
+      console.error('❌ Delete task failed:', error);
+      throw error;
+    }
   }
 }

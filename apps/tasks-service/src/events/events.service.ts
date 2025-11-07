@@ -98,6 +98,28 @@ export class EventsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  publishTaskDeleted(taskId: string, deletedBy: string) {
+    // Fire and forget - don't block on event publishing
+    setImmediate(async () => {
+      try {
+        const payload = {
+          event: 'task:deleted',
+          taskId,
+          deletedBy,
+          timestamp: new Date().toISOString(),
+        };
+        console.log('📤 Publishing task.deleted event:', payload);
+        this.channel.publish(
+          'tasks.events',
+          'task.deleted',
+          Buffer.from(JSON.stringify(payload))
+        );
+      } catch (error) {
+        console.error('❌ Failed to publish task.deleted event:', error);
+      }
+    });
+  }
+
   async onModuleDestroy() {
     if (this.channel) {
       await this.channel.close();

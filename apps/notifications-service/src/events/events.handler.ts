@@ -53,6 +53,8 @@ export class EventsHandler implements OnModuleInit, OnModuleDestroy {
             this.handleTaskCreated(event);
           } else if (event.event === 'task:updated') {
             this.handleTaskUpdated(event);
+          } else if (event.event === 'task:deleted') {
+            this.handleTaskDeleted(event);
           } else if (event.event === 'comment:new') {
             this.handleCommentNew(event);
           }
@@ -89,6 +91,13 @@ export class EventsHandler implements OnModuleInit, OnModuleDestroy {
     if (assignees.length > 0) {
       this.notificationsGateway.broadcastEvent('task:updated', event, assignees);
     }
+  }
+
+  private handleTaskDeleted(event: any) {
+    console.log('📥 task:deleted -', event.taskId);
+
+    // Broadcast to all (everyone should know about deletion)
+    this.notificationsGateway.broadcastToAll('task:deleted', event);
   }
 
   private handleCommentNew(event: any) {

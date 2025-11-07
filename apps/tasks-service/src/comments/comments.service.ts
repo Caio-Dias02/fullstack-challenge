@@ -39,8 +39,12 @@ export class CommentsService {
 
     const saved = await this.commentRepo.save(comment);
 
-    // Publish event
-    this.eventsService.publishCommentNew(saved, dto.taskId);
+    // Publish event (fire and forget)
+    try {
+      this.eventsService.publishCommentNew(saved, dto.taskId);
+    } catch (error) {
+      console.error('⚠️ Failed to publish comment new event:', error);
+    }
 
     return saved;
   }

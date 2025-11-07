@@ -23,6 +23,7 @@ export const useWebSocket = () => {
     // Remove old listeners to avoid duplicates
     socket.off('task:created')
     socket.off('task:updated')
+    socket.off('task:deleted')
     socket.off('comment:new')
 
     // Listen for task:created
@@ -46,6 +47,14 @@ export const useWebSocket = () => {
       queryClient.invalidateQueries({ queryKey: tasksQueryKeys.lists() })
     })
 
+    // Listen for task:deleted
+    socket.on('task:deleted', (event: any) => {
+      console.log('📬 Received task:deleted:', event.taskId)
+      toast.info(`Task deleted`)
+      // Invalidate all task queries to refetch
+      queryClient.invalidateQueries({ queryKey: tasksQueryKeys.all })
+    })
+
     // Listen for comment:new
     socket.on('comment:new', (event: any) => {
       console.log('📬 Received comment:new:', event.taskId)
@@ -59,6 +68,7 @@ export const useWebSocket = () => {
       // Remove listeners to prevent duplicates on reconnect
       socket.off('task:created')
       socket.off('task:updated')
+      socket.off('task:deleted')
       socket.off('comment:new')
     }
   }, [user, token, toast, queryClient])
