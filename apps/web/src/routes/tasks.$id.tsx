@@ -17,12 +17,11 @@ import {
 } from '@/components/ui/dialog'
 import { useTasksStore } from '@/store/tasks'
 import { useToast } from '@/store/toast'
-import { tasksAPI, Comment } from '@/api/tasks'
+import { tasksAPI } from '@/api/tasks'
 import { authAPI, UserSearchResult } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
 import { Spinner } from '@/components/spinner'
 import { useTaskDetail, useTaskComments, useUpdateTask, useDeleteTask, useAddComment } from '@/hooks/useTasksQuery'
-import { rootRoute } from './__root'
 
 const commentSchema = z.object({
   body: z.string().min(1, 'Comment is required').max(1000, 'Comment too long'),
@@ -39,8 +38,7 @@ const editTaskSchema = z.object({
 
 type EditTaskForm = z.infer<typeof editTaskSchema>
 
-export const Route = createFileRoute('/tasks/$id')({
-  getParentRoute: () => rootRoute,
+export const Route = createFileRoute()({
   component: TaskDetailPage,
 })
 
@@ -54,7 +52,7 @@ export function TaskDetailPage() {
 
   // TanStack Query hooks
   const { data: task, isLoading } = useTaskDetail(id)
-  const { data: comments = [], refetch: refetchComments } = useTaskComments(id)
+  const { data: comments = [] } = useTaskComments(id)
   const { mutate: mutateUpdateTask } = useUpdateTask(id)
   const { mutate: mutateDeleteTask } = useDeleteTask()
   const { mutate: mutateAddComment } = useAddComment(id)
@@ -63,13 +61,11 @@ export function TaskDetailPage() {
   const [editingAssignees, setEditingAssignees] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([])
-  const [searching, setSearching] = useState(false)
   const [allUsers, setAllUsers] = useState<UserSearchResult[]>([])
   const [loadingUsers, setLoadingUsers] = useState(false)
   const [deletingTask, setDeletingTask] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [addingComment, setAddingComment] = useState(false)
-  const [addingAssignee, setAddingAssignee] = useState(false)
   const [removingAssignee, setRemovingAssignee] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [editingTask, setEditingTask] = useState(false)
@@ -128,17 +124,12 @@ export function TaskDetailPage() {
       return
     }
 
-    setSearching(true)
-    try {
-      const query = searchQuery.toLowerCase()
-      const filtered = allUsers.filter((u) =>
-        !task?.assignees.includes(u.id) &&
-        (u.username.toLowerCase().includes(query) || u.email.toLowerCase().includes(query))
-      )
-      setSearchResults(filtered)
-    } finally {
-      setSearching(false)
-    }
+    const query = searchQuery.toLowerCase()
+    const filtered = allUsers.filter((u) =>
+      !task?.assignees.includes(u.id) &&
+      (u.username.toLowerCase().includes(query) || u.email.toLowerCase().includes(query))
+    )
+    setSearchResults(filtered)
   }, [searchQuery, allUsers, task?.assignees])
 
   const handleStatusChange = async (newStatus: any) => {
@@ -243,7 +234,6 @@ export function TaskDetailPage() {
       return
     }
 
-    setAddingAssignee(true)
     try {
       const updated = await tasksAPI.update(task.id, {
         assignees: [...task.assignees, userId],
@@ -254,8 +244,6 @@ export function TaskDetailPage() {
       toast.success('Assignee added')
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to add assignee')
-    } finally {
-      setAddingAssignee(false)
     }
   }
 
@@ -263,17 +251,20 @@ export function TaskDetailPage() {
     if (!task) return
 
     setRemovingAssignee(assigneeId)
-    try {
-      const updated = await tasksAPI.update(task.id, {
-        assignees: task.assignees.filter((id) => id !== assigneeId),
-      })
-      updateTask(updated)
-      toast.success('Assignee removed')
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to remove assignee')
-    } finally {
-      setRemovingAssignee(null)
-    }
+    mutateUpdateTask(
+      { assignees: task.assignees.filter((id) => id !== assigneeId) },
+      {
+        onSuccess: () => {
+          toast.success('Assignee removed')
+        },
+        onSettled: () => {
+          setRemovingAssignee(null)
+        },
+        onError: (err: any) => {
+          toast.error(err.response?.data?.message || 'Failed to remove assignee')
+        }
+      }
+    )
   }
 
   const isCreator = task?.creatorId === user?.id
