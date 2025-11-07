@@ -2,7 +2,7 @@ import 'tsconfig-paths/register';
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import cookieParser from 'cookie-parser';
+const cookieParser = require('cookie-parser');
 
 async function bootstrap() {
   try {
@@ -11,8 +11,10 @@ async function bootstrap() {
     app.use(cookieParser());
 
     app.enableCors({
-      origin: ['http://localhost:3001', 'http://localhost:5173'], // Frontend + Vite dev
+      origin: ['http://localhost:3001', 'http://localhost:5173'],
       credentials: true,
+      methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
     });
 
     // Swagger config

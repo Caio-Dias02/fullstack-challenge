@@ -89,6 +89,20 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('users')
+  @ApiOperation({ summary: 'Get all users' })
+  @ApiResponse({ status: 200, description: 'All users retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getAllUsers(@Req() req: Request) {
+    const response = await firstValueFrom(
+      this.httpService.get(`${this.authServiceUrl}/auth/users`, {
+        headers: { Authorization: req.headers.authorization || '' },
+      })
+    );
+    return response.data;
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('users/search')
   @ApiOperation({ summary: 'Search users by email or username' })
   @ApiResponse({ status: 200, description: 'Users found' })

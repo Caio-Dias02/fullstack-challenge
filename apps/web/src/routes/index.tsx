@@ -65,7 +65,8 @@ export function TasksPage() {
     const matchesStatus = !selectedStatus || task.status === selectedStatus
     const matchesPriority = !selectedPriority || task.priority === selectedPriority
     const matchesSearch = !searchQuery || task.title.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesStatus && matchesPriority && matchesSearch
+    const isCreatorOrAssignee = task.creatorId === user?.id || task.assignees.includes(user?.id || '')
+    return matchesStatus && matchesPriority && matchesSearch && isCreatorOrAssignee
   })
 
   // Reset to page 1 when filters change

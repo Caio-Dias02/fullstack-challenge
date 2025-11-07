@@ -46,6 +46,12 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('users')
+  async getAllUsers() {
+    return await this.authService.getAllUsers();
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('users/search')
   async searchUsers(@Query('q') query: string) {
     return await this.authService.searchUsers(query);

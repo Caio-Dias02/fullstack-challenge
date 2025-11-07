@@ -75,6 +75,16 @@ export class AuthService {
     return { id: user.id, email: user.email, username: user.username };
   }
 
+  async getAllUsers() {
+    const users = await this.userRepo
+      .createQueryBuilder('user')
+      .select(['user.id', 'user.email', 'user.username'])
+      .orderBy('user.username', 'ASC')
+      .getMany();
+
+    return users;
+  }
+
   async searchUsers(query: string) {
     if (!query || query.length < 1) {
       return [];

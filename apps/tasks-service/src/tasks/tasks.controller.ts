@@ -46,8 +46,8 @@ export class TasksController {
   }
 
   @MessagePattern({ cmd: 'get_tasks' })
-  async getTasks() {
-    const tasks = await this.tasksService.findAll();
+  async getTasks(@Payload() data: { userId: string }) {
+    const tasks = await this.tasksService.findAll(data.userId);
     return await this.tasksService.enrichTasks(tasks);
   }
 
