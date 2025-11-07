@@ -256,6 +256,10 @@ export function TaskDetailPage() {
       {
         onSuccess: () => {
           toast.success('Assignee removed')
+          // Redirect if current user was removed
+          if (assigneeId === user?.id) {
+            setTimeout(() => navigate({ to: '/' }), 500)
+          }
         },
         onSettled: () => {
           setRemovingAssignee(null)

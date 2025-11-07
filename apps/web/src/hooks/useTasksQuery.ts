@@ -27,6 +27,8 @@ export const useTasksList = () => {
         throw err
       }
     },
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000, // 5 min garbage collection
   })
 }
 
@@ -77,7 +79,7 @@ export const useCreateTask = () => {
 
   return useMutation({
     mutationFn: (data: any) => tasksAPI.create(data),
-    onSuccess: (newTask) => {
+    onSuccess: () => {
       // Invalidate the tasks list to refetch
       queryClient.invalidateQueries({ queryKey: tasksQueryKeys.lists() })
       toast.success('Task created successfully')
