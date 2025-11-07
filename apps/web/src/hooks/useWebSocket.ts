@@ -29,9 +29,11 @@ export const useWebSocket = () => {
     // Listen for task:created
     socket.on('task:created', (event: any) => {
       console.log('📬 Received task:created:', event.title)
-      toast.success(`New task created: ${event.title}`)
-      // Invalidate all task queries to refetch
-      queryClient.invalidateQueries({ queryKey: tasksQueryKeys.all })
+      toast.success(`Nova tarefa criada: ${event.title}`)
+      // Refetch all task queries
+      queryClient.refetchQueries({
+        queryKey: tasksQueryKeys.all
+      })
     })
 
     // Listen for task:updated
@@ -40,19 +42,28 @@ export const useWebSocket = () => {
       const changes = event.changes || {}
       const changedFields = Object.keys(changes)
       if (changedFields.length > 0) {
-        toast.info(`Task updated: ${changedFields.join(', ')}`)
+        toast.info(`Tarefa atualizada: ${changedFields.join(', ')}`)
       }
-      // Invalidate task detail and list queries
-      queryClient.invalidateQueries({ queryKey: tasksQueryKeys.detail(event.taskId) })
-      queryClient.invalidateQueries({ queryKey: tasksQueryKeys.lists() })
+      // Refetch task detail and list queries
+      queryClient.refetchQueries({
+        queryKey: tasksQueryKeys.detail(event.taskId)
+      })
+      queryClient.refetchQueries({
+        queryKey: tasksQueryKeys.lists()
+      })
     })
 
     // Listen for comment:new
     socket.on('comment:new', (event: any) => {
       console.log('📬 Received comment:new:', event.taskId)
-      toast.info(`New comment on task`)
-      // Invalidate comments for this task
-      queryClient.invalidateQueries({ queryKey: tasksQueryKeys.comments(event.taskId) })
+      toast.info(`Novo comentário na tarefa`)
+      // Refetch comments for this task
+      queryClient.refetchQueries({
+        queryKey: tasksQueryKeys.comments(event.taskId)
+      })
+      queryClient.refetchQueries({
+        queryKey: tasksQueryKeys.detail(event.taskId)
+      })
     })
 
     // Cleanup on unmount

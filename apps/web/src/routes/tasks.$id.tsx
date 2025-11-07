@@ -17,7 +17,6 @@ import {
 } from '@/components/ui/dialog'
 import { useTasksStore } from '@/store/tasks'
 import { useToast } from '@/store/toast'
-import { tasksAPI } from '@/api/tasks'
 import { authAPI, UserSearchResult } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
 import { Spinner } from '@/components/spinner'
@@ -243,26 +242,27 @@ export function TaskDetailPage() {
 
   const handleAddAssignee = async (userId: string) => {
     if (!task || !userId) {
-      toast.error('Please select a user')
+      toast.error('Por favor, selecione um usuário')
       return
     }
 
     if (task.assignees.includes(userId)) {
-      toast.error('User is already assigned')
+      toast.error(pt.userAlreadyAssigned)
       return
     }
 
-    try {
-      const updated = await tasksAPI.update(task.id, {
-        assignees: [...task.assignees, userId],
-      })
-      updateTask(updated)
-      setSearchQuery('')
-      setSearchResults([])
-      toast.success('Assignee added')
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to add assignee')
-    }
+    mutateUpdateTask(
+      { assignees: [...task.assignees, userId] },
+      {
+        onSuccess: () => {
+          setSearchQuery('')
+          setSearchResults([])
+        },
+        onError: (err: any) => {
+          toast.error(err.response?.data?.message || 'Falha ao adicionar atribuído')
+        }
+      }
+    )
   }
 
   const handleRemoveAssignee = async (assigneeId: string) => {

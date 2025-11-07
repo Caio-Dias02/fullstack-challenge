@@ -15,9 +15,11 @@ import { ToastContainer } from './components/toast-container'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 0, // Immediately stale so WebSocket invalidation triggers refetch
+      staleTime: 0, // 0 seconds - immediate stale to force refetch on invalidate
       gcTime: 1000 * 60 * 10, // 10 minutes (formerly cacheTime)
       retry: 1,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
     },
     mutations: {
       retry: 1,

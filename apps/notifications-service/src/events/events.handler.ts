@@ -86,11 +86,9 @@ export class EventsHandler implements OnModuleInit, OnModuleDestroy {
   private handleTaskUpdated(event: any) {
     console.log('📥 task:updated -', event.taskId);
 
-    // Notificar assignees (atual + anterior)
-    const assignees = event.assignees || [];
-    if (assignees.length > 0) {
-      this.notificationsGateway.broadcastEvent('task:updated', event, assignees);
-    }
+    // Broadcast para TODOS (qualquer um conectado deve refetchá-lo)
+    // Isso garante que novo assignee recebe a notificação
+    this.notificationsGateway.broadcastToAll('task:updated', event);
   }
 
   private handleTaskDeleted(event: any) {

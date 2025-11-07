@@ -80,13 +80,15 @@ export const useCreateTask = () => {
 
   return useMutation({
     mutationFn: (data: any) => tasksAPI.create(data),
-    onSuccess: () => {
-      // Invalidate the tasks list to refetch
-      queryClient.invalidateQueries({ queryKey: tasksQueryKeys.lists() })
-      toast.success('Task created successfully')
+    onSuccess: async () => {
+      // Refetch tasks list immediately
+      await queryClient.refetchQueries({
+        queryKey: tasksQueryKeys.lists()
+      })
+      toast.success('Tarefa criada com sucesso')
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'Failed to create task')
+      toast.error(err.response?.data?.message || 'Falha ao criar tarefa')
     },
   })
 }
@@ -100,15 +102,24 @@ export const useUpdateTask = (taskId: string) => {
 
   return useMutation({
     mutationFn: (data: any) => tasksAPI.update(taskId, data),
-    onSuccess: (updatedTask) => {
-      // Update the specific task detail query
+    onSuccess: async (updatedTask) => {
+      // Update the specific task detail query with fresh data
       queryClient.setQueryData(tasksQueryKeys.detail(taskId), updatedTask)
-      // Invalidate the tasks list
-      queryClient.invalidateQueries({ queryKey: tasksQueryKeys.lists() })
-      toast.success('Task updated successfully')
+
+      // Refetch task detail immediately
+      await queryClient.refetchQueries({
+        queryKey: tasksQueryKeys.detail(taskId)
+      })
+
+      // Refetch tasks list immediately
+      await queryClient.refetchQueries({
+        queryKey: tasksQueryKeys.lists()
+      })
+
+      toast.success('Tarefa atualizada com sucesso')
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'Failed to update task')
+      toast.error(err.response?.data?.message || 'Falha ao atualizar tarefa')
     },
   })
 }
@@ -122,13 +133,15 @@ export const useDeleteTask = () => {
 
   return useMutation({
     mutationFn: (taskId: string) => tasksAPI.delete(taskId),
-    onSuccess: () => {
-      // Invalidate all task queries
-      queryClient.invalidateQueries({ queryKey: tasksQueryKeys.all })
-      toast.success('Task deleted successfully')
+    onSuccess: async () => {
+      // Refetch all task queries immediately
+      await queryClient.refetchQueries({
+        queryKey: tasksQueryKeys.all
+      })
+      toast.success('Tarefa deletada com sucesso')
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'Failed to delete task')
+      toast.error(err.response?.data?.message || 'Falha ao deletar tarefa')
     },
   })
 }
@@ -142,13 +155,19 @@ export const useAddComment = (taskId: string) => {
 
   return useMutation({
     mutationFn: (data: any) => tasksAPI.addComment(taskId, data),
-    onSuccess: () => {
-      // Invalidate comments for this task
-      queryClient.invalidateQueries({ queryKey: tasksQueryKeys.comments(taskId) })
-      toast.success('Comment added successfully')
+    onSuccess: async () => {
+      // Refetch comments for this task immediately
+      await queryClient.refetchQueries({
+        queryKey: tasksQueryKeys.comments(taskId)
+      })
+      // Also refetch task detail
+      await queryClient.refetchQueries({
+        queryKey: tasksQueryKeys.detail(taskId)
+      })
+      toast.success('Comentário adicionado com sucesso')
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || 'Failed to add comment')
+      toast.error(err.response?.data?.message || 'Falha ao adicionar comentário')
     },
   })
 }
