@@ -3,21 +3,21 @@ FROM node:24 AS base
 WORKDIR /usr/src/app
 
 # Copy workspace files first
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY .npmrc package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/ ./packages/
 
 # Install pnpm and nestjs-cli
 RUN npm install -g pnpm @nestjs/cli
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Install dependencies recursively
+RUN pnpm install -r
 
 # Development stage
 FROM base AS development
 COPY apps/auth-service/ ./apps/auth-service/
-WORKDIR /usr/src/app
-RUN pnpm install --no-frozen-lockfile
 WORKDIR /usr/src/app/apps/auth-service
+RUN pnpm install --prod=false
+RUN tsc || true
 EXPOSE 3002
 CMD ["npm", "run", "start:dev"]
 

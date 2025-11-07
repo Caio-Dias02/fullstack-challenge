@@ -10,8 +10,8 @@ services:
       - "5173:5173"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:3001/api
-      - VITE_API_WEBSOCKET_URL=ws://localhost:3004
+      - VITE_API_URL=http://localhost:3000/api
+      - VITE_API_WEBSOCKET_URL=ws://localhost:3003
     networks:
       - challenge-network
     command: npm run dev -- --host 0.0.0.0
@@ -26,14 +26,16 @@ services:
       dockerfile: ./apps/api-gateway/Dockerfile
       target: development
     ports:
-      - "3001:3001"
+      - "3000:3000"
     volumes:
       - .:/usr/src/app
       - api_gateway_node_modules:/usr/src/app/apps/api-gateway/node_modules
       - root_node_modules:/usr/src/app/node_modules
     environment:
       - NODE_ENV=development
-      - PORT=3001
+      - PORT=3000
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - TASKS_SERVICE_URL=http://tasks-service:3002
       - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
       - JWT_SECRET=your-secret-key-here
     depends_on:
@@ -54,16 +56,20 @@ services:
       dockerfile: ./apps/auth-service/Dockerfile
       target: development
     ports:
-      - "3002:3002"
+      - "3001:3001"
     volumes:
       - .:/usr/src/app
       - auth_service_node_modules:/usr/src/app/apps/auth-service/node_modules
       - root_node_modules:/usr/src/app/node_modules
     environment:
       - NODE_ENV=development
-      - PORT=3002
+      - PORT=3001
       - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
-      - DATABASE_URL=postgresql://postgres:password@auth-db:5432/auth_db
+      - DB_HOST=auth-db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASS=password
+      - DB_NAME=auth_db
       - JWT_SECRET=your-secret-key-here
       - JWT_EXPIRES_IN=15m
       - REFRESH_TOKEN_EXPIRES_IN=7d
@@ -83,16 +89,20 @@ services:
       dockerfile: ./apps/tasks-service/Dockerfile
       target: development
     ports:
-      - "3003:3003"
+      - "3002:3002"
     volumes:
       - .:/usr/src/app
       - tasks_service_node_modules:/usr/src/app/apps/tasks-service/node_modules
       - root_node_modules:/usr/src/app/node_modules
     environment:
       - NODE_ENV=development
-      - PORT=3003
+      - PORT=3002
       - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
-      - DATABASE_URL=postgresql://postgres:password@tasks-db:5432/tasks_db
+      - DB_HOST=tasks-db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASS=password
+      - DB_NAME=tasks_db
     depends_on:
       tasks-db:
         condition: service_started
@@ -109,14 +119,14 @@ services:
       dockerfile: ./apps/notifications-service/Dockerfile
       target: development
     ports:
-      - "3004:3004"
+      - "3003:3003"
     volumes:
       - .:/usr/src/app
       - notifications_service_node_modules:/usr/src/app/apps/notifications-service/node_modules
       - root_node_modules:/usr/src/app/node_modules
     environment:
       - NODE_ENV=development
-      - PORT=3004
+      - PORT=3003
       - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
     depends_on:
       rabbitmq:

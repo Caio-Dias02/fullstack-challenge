@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Res, Req, Get, UseGuards, Query } from '@nestjs/common';
+import { Controller, Post, Body, Res, Req, Get, UseGuards, Query, HttpException, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -30,10 +30,18 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Invalid input' })
   @ApiResponse({ status: 409, description: 'Email or username already exists' })
   async register(@Body() registerDto: any) {
-    const response = await firstValueFrom(
-      this.httpService.post(`${this.authServiceUrl}/auth/register`, registerDto)
-    );
-    return response.data;
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(`${this.authServiceUrl}/auth/register`, registerDto, {
+          withCredentials: true,
+        })
+      );
+      return response.data;
+    } catch (error: any) {
+      const status = error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      const message = error.response?.data?.message || error.message || 'Registration failed';
+      throw new HttpException(message, status);
+    }
   }
 
   @Post('login')
@@ -55,22 +63,30 @@ export class AuthController {
     @Body() loginDto: any,
     @Res({ passthrough: true }) res: Response
   ) {
-    const response = await firstValueFrom(
-      this.httpService.post(`${this.authServiceUrl}/auth/login`, loginDto)
-    );
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(`${this.authServiceUrl}/auth/login`, loginDto, {
+          withCredentials: true,
+        })
+      );
 
-    const { accessToken } = response.data;
+      const { accessToken } = response.data;
 
-    // Set cookies no gateway
-    if (accessToken) {
-      res.cookie('accessToken', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 15 * 60 * 1000, // 15 min
-      });
+      // Set cookies no gateway
+      if (accessToken) {
+        res.cookie('accessToken', accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          maxAge: 15 * 60 * 1000, // 15 min
+        });
+      }
+
+      return response.data;
+    } catch (error: any) {
+      const status = error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      const message = error.response?.data?.message || error.message || 'Login failed';
+      throw new HttpException(message, status);
     }
-
-    return response.data;
   }
 
   @Post('refresh')
@@ -78,14 +94,20 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'New access token generated' })
   @ApiResponse({ status: 401, description: 'Refresh token invalid or expired' })
   async refresh(@Req() req: Request) {
-    const response = await firstValueFrom(
-      this.httpService.post(
-        `${this.authServiceUrl}/auth/refresh`,
-        {},
-        { headers: { cookie: req.headers.cookie || '' } }
-      )
-    );
-    return response.data;
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(
+          `${this.authServiceUrl}/auth/refresh`,
+          {},
+          { headers: { cookie: req.headers.cookie || '' }, withCredentials: true }
+        )
+      );
+      return response.data;
+    } catch (error: any) {
+      const status = error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      const message = error.response?.data?.message || error.message || 'Refresh failed';
+      throw new HttpException(message, status);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
@@ -94,12 +116,18 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'All users retrieved' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getAllUsers(@Req() req: Request) {
-    const response = await firstValueFrom(
-      this.httpService.get(`${this.authServiceUrl}/auth/users`, {
-        headers: { Authorization: req.headers.authorization || '' },
-      })
-    );
-    return response.data;
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.authServiceUrl}/auth/users`, {
+          headers: { Authorization: req.headers.authorization || '' },
+        })
+      );
+      return response.data;
+    } catch (error: any) {
+      const status = error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      const message = error.response?.data?.message || error.message || 'Failed to get users';
+      throw new HttpException(message, status);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
@@ -108,12 +136,18 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Users found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async searchUsers(@Query('q') query: string, @Req() req: Request) {
-    const response = await firstValueFrom(
-      this.httpService.get(`${this.authServiceUrl}/auth/users/search`, {
-        params: { q: query },
-        headers: { Authorization: req.headers.authorization || '' },
-      })
-    );
-    return response.data;
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.authServiceUrl}/auth/users/search`, {
+          params: { q: query },
+          headers: { Authorization: req.headers.authorization || '' },
+        })
+      );
+      return response.data;
+    } catch (error: any) {
+      const status = error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      const message = error.response?.data?.message || error.message || 'Search failed';
+      throw new HttpException(message, status);
+    }
   }
 }

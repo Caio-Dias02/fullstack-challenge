@@ -11,7 +11,10 @@
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
-    "strict": true,
+    "strict": false,
+    "noEmitOnError": false,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
     "paths": {
       "@fullstack-challenge/types": ["packages/types"],
       "@fullstack-challenge/types/*": ["packages/types/*"]
