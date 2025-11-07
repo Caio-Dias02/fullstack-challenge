@@ -22,16 +22,17 @@ import { authAPI, UserSearchResult } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
 import { Spinner } from '@/components/spinner'
 import { useTaskDetail, useTaskComments, useUpdateTask, useDeleteTask, useAddComment, useTaskHistory } from '@/hooks/useTasksQuery'
+import { pt } from '@/lib/translations'
 
 const commentSchema = z.object({
-  body: z.string().min(1, 'Comment is required').max(1000, 'Comment too long'),
+  body: z.string().min(1, pt.commentRequired).max(1000, pt.commentTooLong),
 })
 
 type CommentForm = z.infer<typeof commentSchema>
 
 const editTaskSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
-  description: z.string().max(2000, 'Description too long').optional(),
+  title: z.string().min(1, pt.titleRequired).max(200, pt.titleTooLong),
+  description: z.string().max(2000, pt.descriptionTooLong).optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
   dueDate: z.string().optional().refine(
     (date) => {
@@ -41,7 +42,7 @@ const editTaskSchema = z.object({
       today.setHours(0, 0, 0, 0)
       return selectedDate >= today
     },
-    'Due date must be today or in the future'
+    pt.dueDateFuture
   ),
 })
 
@@ -291,30 +292,30 @@ export function TaskDetailPage() {
   const isCreator = task?.creatorId === user?.id
   const isAssignee = task?.assignees.includes(user?.id || '')
 
-  if (isLoading) return <div className="flex flex-col items-center justify-center py-12"><Spinner size="lg" /><p className="text-muted-foreground mt-4">Loading task...</p></div>
-  if (!task) return <div className="p-6">Task not found</div>
+  if (isLoading) return <div className="flex flex-col items-center justify-center py-12"><Spinner size="lg" /><p className="text-muted-foreground mt-4">{pt.tasks}...</p></div>
+  if (!task) return <div className="p-6">Tarefa não encontrada</div>
 
   return (
     <div className="space-y-6 p-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <Link to="/">
-          <Button variant="outline">← Back</Button>
+          <Button variant="outline">{pt.back}</Button>
         </Link>
         <div className="flex gap-2">
           {isCreator && (
             <>
               <Button variant="outline" onClick={handleEditClick} disabled={editingTask}>
-                Edit
+                {pt.edit}
               </Button>
               <Button variant="destructive" onClick={handleDeleteClick} disabled={deletingTask}>
               {deletingTask ? (
                 <div className="flex items-center gap-2">
                   <Spinner size="sm" />
-                  <span>Deleting...</span>
+                  <span>{pt.deleting}</span>
                 </div>
               ) : (
-                'Delete'
+                pt.delete
               )}
             </Button>
             </>
@@ -329,7 +330,7 @@ export function TaskDetailPage() {
             <div className="flex-1">
               <CardTitle className="text-3xl">{task.title}</CardTitle>
               <CardDescription>
-                Created by{' '}
+                {pt.createdBy}{' '}
                 {(task as any).creatorData ? (
                   <>
                     <span className="font-medium">{(task as any).creatorData.username}</span>
@@ -384,7 +385,7 @@ export function TaskDetailPage() {
         <CardContent className="space-y-6">
           {task.description && (
             <div>
-              <h3 className="font-semibold mb-2">Description</h3>
+              <h3 className="font-semibold mb-2">{pt.description}</h3>
               <p className="text-sm text-muted-foreground">{task.description}</p>
             </div>
           )}
@@ -392,19 +393,19 @@ export function TaskDetailPage() {
           <div className="grid grid-cols-2 gap-4">
             {task.dueDate && (
               <div>
-                <h3 className="font-semibold mb-1">Due Date</h3>
+                <h3 className="font-semibold mb-1">{pt.dueDate}</h3>
                 <p className="text-sm text-muted-foreground">
                   {new Date(task.dueDate).toLocaleDateString()}
                 </p>
               </div>
             )}
             <div>
-              <h3 className="font-semibold mb-2">Assignees</h3>
+              <h3 className="font-semibold mb-2">{pt.assignees}</h3>
               {editingAssignees ? (
                 <div className="space-y-2">
                   <div className="relative">
                     <Input
-                      placeholder="Search by email or username..."
+                      placeholder={pt.searchUsers}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="text-sm"
@@ -413,7 +414,7 @@ export function TaskDetailPage() {
                   {loadingUsers ? (
                     <div className="flex items-center justify-center py-4">
                       <Spinner size="sm" />
-                      <span className="ml-2 text-sm">Loading users...</span>
+                      <span className="ml-2 text-sm">{pt.loadingUsers}</span>
                     </div>
                   ) : searchResults.length > 0 ? (
                     <div className="border rounded max-h-64 overflow-y-auto">
@@ -430,7 +431,7 @@ export function TaskDetailPage() {
                     </div>
                   ) : (
                     <p className="text-sm text-gray-500 py-2">
-                      {searchQuery ? 'No users found' : 'No more users to add'}
+                      {searchQuery ? pt.noUsers : pt.noMoreUsers}
                     </p>
                   )}
                   {(task as any).assigneesData && (task as any).assigneesData.length > 0 && (
@@ -453,10 +454,10 @@ export function TaskDetailPage() {
                             {removingAssignee === assignee.id ? (
                               <div className="flex items-center gap-2">
                                 <Spinner size="sm" />
-                                <span>Removing...</span>
+                                <span>{pt.removing}</span>
                               </div>
                             ) : (
-                              'Remove'
+                              pt.remove
                             )}
                           </Button>
                         </div>
@@ -472,13 +473,13 @@ export function TaskDetailPage() {
                       setSearchResults([])
                     }}
                   >
-                    Done
+                    {pt.done}
                   </Button>
                 </div>
               ) : (
                 <div>
                   <p className="text-sm text-muted-foreground mb-2">
-                    {task.assignees.length} people
+                    {task.assignees.length} {task.assignees.length !== 1 ? pt.people : pt.person}
                   </p>
                   {isCreator && (
                     <Button
@@ -486,7 +487,7 @@ export function TaskDetailPage() {
                       variant="outline"
                       onClick={() => setEditingAssignees(true)}
                     >
-                      Manage
+                      {pt.manage}
                     </Button>
                   )}
                 </div>
@@ -500,11 +501,11 @@ export function TaskDetailPage() {
       {(isCreator || isAssignee) && (
         <Card>
           <CardHeader>
-            <CardTitle>Comments</CardTitle>
+            <CardTitle>{pt.comments}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {comments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No comments yet</p>
+              <p className="text-sm text-muted-foreground">{pt.noComments}</p>
             ) : (
               <div className="space-y-3">
                 {comments.map((comment) => (
@@ -532,7 +533,7 @@ export function TaskDetailPage() {
               <textarea
                 {...register('body')}
                 className="w-full p-2 border rounded text-sm"
-                placeholder="Add a comment..."
+                placeholder="Adicionar comentário..."
                 rows={3}
               />
               {errors.body && <p className="text-red-500 text-sm">{errors.body.message}</p>}
@@ -540,10 +541,10 @@ export function TaskDetailPage() {
                 {addingComment ? (
                   <div className="flex items-center gap-2">
                     <Spinner size="sm" />
-                    <span>Adding...</span>
+                    <span>{pt.addingComment}</span>
                   </div>
                 ) : (
-                  'Add Comment'
+                  pt.addComment
                 )}
               </Button>
             </form>
@@ -555,12 +556,12 @@ export function TaskDetailPage() {
       {(isCreator || isAssignee) && (
         <Card>
           <CardHeader>
-            <CardTitle>Change History</CardTitle>
-            <CardDescription>Track all changes made to this task</CardDescription>
+            <CardTitle>{pt.changeHistory}</CardTitle>
+            <CardDescription>{pt.trackChanges}</CardDescription>
           </CardHeader>
           <CardContent>
             {history.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No changes yet</p>
+              <p className="text-sm text-muted-foreground">{pt.noChanges}</p>
             ) : (
               <div className="space-y-3">
                 {history.map((entry: any) => (
@@ -568,10 +569,10 @@ export function TaskDetailPage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="text-sm font-semibold">
-                          <span className="capitalize">{entry.field}</span> changed
+                          <span className="capitalize">{entry.field}</span> {pt.changed}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          By: {entry.changedByData ? (
+                          {pt.by}: {entry.changedByData ? (
                             <>
                               <span>{entry.changedByData.username}</span>
                               <span className="ml-1">({entry.changedByData.email})</span>
@@ -588,12 +589,12 @@ export function TaskDetailPage() {
                     <div className="mt-2 space-y-1">
                       {entry.oldValue !== undefined && entry.oldValue !== null && entry.oldValue !== '' && (
                         <p className="text-xs">
-                          <span className="text-red-600">From:</span> <span className="line-through">{entry.oldValue}</span>
+                          <span className="text-red-600">{pt.from}:</span> <span className="line-through">{entry.oldValue}</span>
                         </p>
                       )}
                       {entry.newValue !== undefined && entry.newValue !== null && entry.newValue !== '' && (
                         <p className="text-xs">
-                          <span className="text-green-600">To:</span> <span className="font-medium">{entry.newValue}</span>
+                          <span className="text-green-600">{pt.to}:</span> <span className="font-medium">{entry.newValue}</span>
                         </p>
                       )}
                     </div>
@@ -609,11 +610,11 @@ export function TaskDetailPage() {
       <Dialog open={editingTask} onOpenChange={setEditingTask}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Task</DialogTitle>
+            <DialogTitle>{pt.editTask}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmitEditForm(onEditTaskSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
+              <label className="block text-sm font-medium mb-1">{pt.title}</label>
               <input
                 {...registerEditForm('title')}
                 type="text"
@@ -623,7 +624,7 @@ export function TaskDetailPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
+              <label className="block text-sm font-medium mb-1">{pt.description}</label>
               <textarea
                 {...registerEditForm('description')}
                 className="w-full border rounded px-3 py-2 text-sm"
@@ -634,33 +635,33 @@ export function TaskDetailPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Priority</label>
+                <label className="block text-sm font-medium mb-1">{pt.priority}</label>
                 <select {...registerEditForm('priority')} className="w-full border rounded px-3 py-2 text-sm">
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
-                  <option value="URGENT">Urgent</option>
+                  <option value="LOW">{pt.low}</option>
+                  <option value="MEDIUM">{pt.medium}</option>
+                  <option value="HIGH">{pt.high}</option>
+                  <option value="URGENT">{pt.urgent}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Due Date</label>
+                <label className="block text-sm font-medium mb-1">{pt.dueDate}</label>
                 <input {...registerEditForm('dueDate')} type="date" className="w-full border rounded px-3 py-2 text-sm" />
               </div>
             </div>
 
             <DialogFooter>
               <Button variant="outline" onClick={handleEditCancel} disabled={savingTask}>
-                Cancel
+                {pt.cancel}
               </Button>
               <Button type="submit" disabled={savingTask}>
                 {savingTask ? (
                   <div className="flex items-center gap-2">
                     <Spinner size="sm" />
-                    <span>Saving...</span>
+                    <span>{pt.saving}</span>
                   </div>
                 ) : (
-                  'Save'
+                  pt.save
                 )}
               </Button>
             </DialogFooter>
@@ -672,23 +673,23 @@ export function TaskDetailPage() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Task</DialogTitle>
+            <DialogTitle>{pt.deleteTask}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this task? This action cannot be undone.
+              Tem certeza que deseja deletar esta tarefa? Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={handleDeleteCancel} disabled={deletingTask}>
-              Cancel
+              {pt.cancel}
             </Button>
             <Button variant="destructive" onClick={handleDeleteTask} disabled={deletingTask}>
               {deletingTask ? (
                 <div className="flex items-center gap-2">
                   <Spinner size="sm" />
-                  <span>Deleting...</span>
+                  <span>{pt.deleting}</span>
                 </div>
               ) : (
-                'Delete'
+                pt.delete
               )}
             </Button>
           </DialogFooter>

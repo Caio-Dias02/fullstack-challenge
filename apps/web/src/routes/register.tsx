@@ -11,18 +11,19 @@ import { useToast } from '@/store/toast'
 import { authAPI } from '@/api/auth'
 import { Spinner } from '@/components/spinner'
 import { rootRoute } from './__root'
+import { pt } from '@/lib/translations'
 
 const registerSchema = z.object({
-  email: z.string().email('Invalid email address').max(100, 'Email too long'),
+  email: z.string().email('Endereço de email inválido').max(100, 'Email muito longo'),
   username: z
     .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(30, 'Username must be at most 30 characters')
-    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain alphanumeric characters, underscore, and hyphen'),
+    .min(3, 'Nome de usuário deve ter no mínimo 3 caracteres')
+    .max(30, 'Nome de usuário deve ter no máximo 30 caracteres')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Nome de usuário pode conter apenas caracteres alfanuméricos, underscore e hífen'),
   password: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(128, 'Password too long'),
+    .min(8, 'Senha deve ter no mínimo 8 caracteres')
+    .max(128, 'Senha muito longa'),
 })
 
 type RegisterForm = z.infer<typeof registerSchema>
@@ -52,10 +53,10 @@ export function RegisterPage() {
     try {
       const response = await authAPI.register(data)
       setAuth(response.user, response.accessToken)
-      toast.success('Account created successfully!')
+      toast.success('Conta criada com sucesso!')
       navigate({ to: '/' })
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Registration failed')
+      toast.error(err.response?.data?.message || 'Falha no registro')
     } finally {
       setLoading(false)
     }
@@ -65,25 +66,25 @@ export function RegisterPage() {
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Create Account</CardTitle>
-          <CardDescription>Register to get started</CardDescription>
+          <CardTitle>Criar Conta</CardTitle>
+          <CardDescription>Registre-se para começar</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
+              <label className="block text-sm font-medium mb-1">{pt.email}</label>
               <Input {...register('email')} placeholder="john@example.com" type="email" />
               {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Username</label>
+              <label className="block text-sm font-medium mb-1">{pt.username}</label>
               <Input {...register('username')} placeholder="johndoe" type="text" />
               {errors.username && <p className="text-red-500 text-sm mt-1">{errors.username.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Password</label>
+              <label className="block text-sm font-medium mb-1">{pt.password}</label>
               <Input {...register('password')} placeholder="••••••••" type="password" />
               {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
             </div>
@@ -92,17 +93,17 @@ export function RegisterPage() {
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
                   <Spinner size="sm" />
-                  <span>Creating account...</span>
+                  <span>Criando conta...</span>
                 </div>
               ) : (
-                'Register'
+                pt.register
               )}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">
-              Already have an account?{' '}
+              Já tem uma conta?{' '}
               <Link to="/login" className="text-primary hover:underline">
-                Login
+                {pt.login}
               </Link>
             </p>
           </form>

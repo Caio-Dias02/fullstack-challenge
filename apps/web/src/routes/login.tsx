@@ -11,10 +11,11 @@ import { useToast } from '@/store/toast'
 import { authAPI } from '@/api/auth'
 import { Spinner } from '@/components/spinner'
 import { rootRoute } from './__root'
+import { pt } from '@/lib/translations'
 
 const loginSchema = z.object({
-  emailOrUsername: z.string().min(1, 'Email or username is required'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  emailOrUsername: z.string().min(1, 'Email ou nome de usuário é obrigatório'),
+  password: z.string().min(8, 'Senha deve ter no mínimo 8 caracteres'),
 })
 
 type LoginForm = z.infer<typeof loginSchema>
@@ -50,10 +51,10 @@ export function LoginPage() {
 
       const response = await authAPI.login(loginData)
       setAuth(response.user, response.accessToken)
-      toast.success('Login successful!')
+      toast.success('Login realizado com sucesso!')
       navigate({ to: '/' })
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Login failed')
+      toast.error(err.response?.data?.message || 'Falha no login')
     } finally {
       setLoading(false)
     }
@@ -63,16 +64,16 @@ export function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>Enter your credentials to continue</CardDescription>
+          <CardTitle>{pt.login}</CardTitle>
+          <CardDescription>Digite suas credenciais para continuar</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Email or Username</label>
+              <label className="block text-sm font-medium mb-1">{pt.email} ou {pt.username}</label>
               <Input
                 {...register('emailOrUsername')}
-                placeholder="john@example.com or johndoe"
+                placeholder="john@example.com ou johndoe"
                 type="text"
               />
               {errors.emailOrUsername && (
@@ -81,7 +82,7 @@ export function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Password</label>
+              <label className="block text-sm font-medium mb-1">{pt.password}</label>
               <Input {...register('password')} placeholder="••••••••" type="password" />
               {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
             </div>
@@ -90,17 +91,17 @@ export function LoginPage() {
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
                   <Spinner size="sm" />
-                  <span>Logging in...</span>
+                  <span>Entrando...</span>
                 </div>
               ) : (
-                'Login'
+                pt.login
               )}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">
-              Don't have an account?{' '}
+              Não tem uma conta?{' '}
               <Link to="/register" className="text-primary hover:underline">
-                Register
+                {pt.register}
               </Link>
             </p>
           </form>

@@ -9,9 +9,10 @@ import { useTasksStore } from '@/store/tasks'
 import { Spinner } from '@/components/spinner'
 import { useCreateTask } from '@/hooks/useTasksQuery'
 import { rootRoute } from './__root'
+import { pt } from '@/lib/translations'
 
 const createTaskSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
+  title: z.string().min(1, pt.titleRequired).max(200, pt.titleTooLong),
   description: z.string().optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
   dueDate: z.string().optional().refine(
@@ -22,7 +23,7 @@ const createTaskSchema = z.object({
       today.setHours(0, 0, 0, 0)
       return selectedDate >= today
     },
-    'Due date must be today or in the future'
+    pt.dueDateFuture
   ),
 })
 
@@ -60,27 +61,27 @@ export function NewTaskPage() {
   return (
     <div className="space-y-6 p-6 max-w-2xl mx-auto">
       <Link to="/">
-        <Button variant="outline">← Back</Button>
+        <Button variant="outline">{pt.back}</Button>
       </Link>
 
       <Card>
         <CardHeader>
-          <CardTitle>Create New Task</CardTitle>
-          <CardDescription>Add a new task to get started</CardDescription>
+          <CardTitle>Criar Nova Tarefa</CardTitle>
+          <CardDescription>Adicione uma nova tarefa para começar</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
-              <Input {...register('title')} placeholder="Task title" />
+              <label className="block text-sm font-medium mb-1">{pt.title}</label>
+              <Input {...register('title')} placeholder="Título da tarefa" />
               {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
+              <label className="block text-sm font-medium mb-1">{pt.description}</label>
               <textarea
                 {...register('description')}
-                placeholder="Task description (optional)"
+                placeholder="Descrição da tarefa (opcional)"
                 className="w-full p-2 border rounded text-sm"
                 rows={4}
               />
@@ -89,17 +90,17 @@ export function NewTaskPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Priority</label>
+                <label className="block text-sm font-medium mb-1">{pt.priority}</label>
                 <select {...register('priority')} className="w-full p-2 border rounded text-sm">
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
-                  <option value="URGENT">Urgent</option>
+                  <option value="LOW">{pt.low}</option>
+                  <option value="MEDIUM">{pt.medium}</option>
+                  <option value="HIGH">{pt.high}</option>
+                  <option value="URGENT">{pt.urgent}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Due Date</label>
+                <label className="block text-sm font-medium mb-1">{pt.dueDate}</label>
                 <Input {...register('dueDate')} type="date" />
                 {errors.dueDate && <p className="text-red-500 text-sm mt-1">{errors.dueDate.message}</p>}
               </div>
@@ -109,10 +110,10 @@ export function NewTaskPage() {
               {isPending ? (
                 <div className="flex items-center justify-center gap-2">
                   <Spinner size="sm" />
-                  <span>Creating...</span>
+                  <span>Criando...</span>
                 </div>
               ) : (
-                'Create Task'
+                'Criar Tarefa'
               )}
             </Button>
           </form>
