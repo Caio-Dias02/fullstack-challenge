@@ -9,7 +9,7 @@
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "dev": "concurrently \"tsc --watch\" \"nodemon --delay 2 --watch dist --exec node dist/apps/api-gateway/src/main.js\"",
+    "dev": "concurrently \"tsc --watch\" \"nodemon --delay 2 --watch dist --exec node start.js\"",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/apps/api-gateway/src/main.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",

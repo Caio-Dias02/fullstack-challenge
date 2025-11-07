@@ -22,7 +22,13 @@ export class TasksController implements OnModuleInit {
   }
 
   async onModuleInit() {
-    await this.client.connect();
+    try {
+      await this.client.connect();
+      console.log('✅ TasksController: RabbitMQ connected');
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      console.error('⚠️ TasksController: Failed to connect to RabbitMQ -', error.message);
+    }
   }
 
   @UseGuards(JwtAuthGuard)
