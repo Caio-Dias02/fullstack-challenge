@@ -1,45 +1,48 @@
-import 'tsconfig-paths/register';
+import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-const cookieParser = require('cookie-parser');
 
 async function bootstrap() {
-  try {
-    const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule);
 
-    app.use(cookieParser());
-    app.setGlobalPrefix('api');
+  app.enableCors({
+    origin: ['http://localhost:5173', 'http://web:5173'],
+    credentials: true,
+  });
 
-    app.enableCors({
-      origin: ['http://localhost:5173'],
-      credentials: true,
-      methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
-    });
+  app.setGlobalPrefix('api');
 
-    // Swagger config
-    const config = new DocumentBuilder()
-      .setTitle('Fullstack Challenge API')
-      .setDescription('Task Management System API')
-      .setVersion('1.0')
-      .addBearerAuth()
-      .build();
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api/docs', app, document);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+    })
+  );
 
-    await app.listen(process.env.PORT || 3000);
-    console.log(`🚀 API Gateway running on http://localhost:${process.env.PORT || 3000}`);
-    console.log(`📚 Swagger docs at http://localhost:${process.env.PORT || 3000}/api/docs`);
-  } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err));
-    console.error('❌ Failed to bootstrap API Gateway:', error.message);
-    process.exit(1);
-  }
+  app.useGlobalGuards(app.get(ThrottlerGuard));
+
+  // Swagger
+  const config = new DocumentBuilder()
+    .setTitle('Fullstack Challenge API')
+    .setDescription('Task Management System API')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
+
+  const configService = app.get<ConfigService>(ConfigService);
+  const PORT = configService.get('PORT', { infer: true }) || 3000;
+
+  await app.listen(PORT);
+  console.log(`🚀 API Gateway listening on port ${PORT}`);
 }
 
 bootstrap().catch((err: unknown) => {
   const error = err instanceof Error ? err : new Error(String(err));
-  console.error('❌ Uncaught bootstrap error:', error.message);
+  console.error('❌ Bootstrap error:', error.message);
   process.exit(1);
 });
