@@ -50,4 +50,9 @@ export const authAPI = {
     const res = await apiClient.get('/auth/users/search', { params: { q: query } })
     return res.data
   },
+
+  getAllUsers: async (): Promise<UserSearchResult[]> => {
+    const res = await apiClient.get('/auth/users')
+    return res.data
+  },
 }

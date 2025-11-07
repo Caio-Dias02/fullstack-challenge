@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/store/auth'
 import { useTasksStore } from '@/store/tasks'
@@ -90,7 +90,7 @@ export function TasksPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold text-slate-900">
             Tasks
           </h1>
           <p className="text-muted-foreground text-lg">
@@ -99,7 +99,7 @@ export function TasksPage() {
         </div>
         <div className="flex gap-3">
           <Link to="/tasks/new">
-            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/25 transition-all duration-200">
+            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
               <Plus className="mr-2 h-4 w-4" />
               New Task
             </Button>
@@ -113,7 +113,7 @@ export function TasksPage() {
 
       {/* Search and Filters */}
       {!isLoading && tasks.length > 0 && (
-        <Card className="border-slate-200 shadow-md hover:shadow-lg transition-shadow duration-200">
+        <Card className="border-slate-200">
           <CardHeader className="pb-4">
             <CardTitle className="text-xl flex items-center gap-2">
               <Filter className="h-5 w-5 text-blue-600" />
@@ -131,7 +131,7 @@ export function TasksPage() {
                     placeholder="Search tasks..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full border-2 border-slate-200 rounded-lg px-10 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none bg-white"
+                    className="w-full border-2 border-slate-200 rounded-lg px-10 py-2.5 text-sm focus:border-blue-500 transition-all outline-none bg-white"
                   />
                 </div>
               </div>
@@ -142,7 +142,7 @@ export function TasksPage() {
                   <select
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="w-full border-2 border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none bg-white cursor-pointer"
+                    className="w-full border-2 border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:border-blue-500 transition-all outline-none bg-white cursor-pointer"
                   >
                     <option value="">All statuses</option>
                     <option value="TODO">To Do</option>
@@ -157,7 +157,7 @@ export function TasksPage() {
                   <select
                     value={selectedPriority}
                     onChange={(e) => setSelectedPriority(e.target.value)}
-                    className="w-full border-2 border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none bg-white cursor-pointer"
+                    className="w-full border-2 border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:border-blue-500 transition-all outline-none bg-white cursor-pointer"
                   >
                     <option value="">All priorities</option>
                     <option value="LOW">Low</option>
@@ -186,7 +186,7 @@ export function TasksPage() {
 
       {/* Tasks Grid */}
       {isLoading ? (
-        <Card className="border-slate-200 shadow-md">
+        <Card className="border-slate-200">
           <CardContent className="py-16">
             <div className="flex flex-col items-center justify-center">
               <Spinner size="lg" />
@@ -195,7 +195,7 @@ export function TasksPage() {
           </CardContent>
         </Card>
       ) : tasks.length === 0 ? (
-        <Card className="border-slate-200 shadow-md">
+        <Card className="border-slate-200">
           <CardContent className="py-16 text-center">
             <div className="space-y-3">
               <p className="text-slate-600 text-lg font-medium">No tasks yet.</p>
@@ -210,7 +210,7 @@ export function TasksPage() {
           </CardContent>
         </Card>
       ) : filteredTasks.length === 0 ? (
-        <Card className="border-slate-200 shadow-md">
+        <Card className="border-slate-200">
           <CardContent className="py-16 text-center">
             <div className="space-y-3">
               <p className="text-slate-600 text-lg font-medium">No tasks match the selected filters.</p>
@@ -225,8 +225,8 @@ export function TasksPage() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {paginatedTasks.map((task) => (
-            <Link key={task.id} to={`/tasks/${task.id}`}>
-              <Card className="cursor-pointer hover:shadow-xl transition-all duration-300 border-slate-200 hover:border-blue-300 hover:-translate-y-1 group bg-white">
+            <Link key={task.id} to="/tasks/$id" params={{ id: task.id }}>
+              <Card className="cursor-pointer transition-all duration-300 border-slate-200 hover:border-blue-300 hover:-translate-y-1 group bg-white">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <CardTitle className="text-lg font-semibold line-clamp-2 group-hover:text-blue-600 transition-colors flex-1">
@@ -270,7 +270,7 @@ export function TasksPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <Card className="border-slate-200 shadow-md">
+            <Card className="border-slate-200">
               <CardContent className="py-5">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                   <p className="text-sm text-slate-600 font-medium">

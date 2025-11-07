@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dialog'
 import { useTasksStore } from '@/store/tasks'
 import { useToast } from '@/store/toast'
-import { Comment } from '@/api/tasks'
+import { tasksAPI, Comment } from '@/api/tasks'
 import { authAPI, UserSearchResult } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
 import { Spinner } from '@/components/spinner'
@@ -50,6 +50,7 @@ export function TaskDetailPage() {
   const user = useAuthStore((state) => state.user)
   const updateTask = useTasksStore((state) => state.updateTask)
   const deleteTask = useTasksStore((state) => state.deleteTask)
+  const toast = useToast()
 
   // TanStack Query hooks
   const { data: task, isLoading } = useTaskDetail(id)
@@ -63,6 +64,8 @@ export function TaskDetailPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([])
   const [searching, setSearching] = useState(false)
+  const [allUsers, setAllUsers] = useState<UserSearchResult[]>([])
+  const [loadingUsers, setLoadingUsers] = useState(false)
   const [deletingTask, setDeletingTask] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [addingComment, setAddingComment] = useState(false)
@@ -103,28 +106,40 @@ export function TaskDetailPage() {
     }
   }, [task, updateTask])
 
+  // Load all users when entering assignees edit mode
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (searchQuery.length < 1) {
-        setSearchResults([])
-        return
-      }
+    if (editingAssignees && allUsers.length === 0) {
+      setLoadingUsers(true)
+      authAPI.getAllUsers().then((users) => {
+        setAllUsers(users)
+        setSearchResults(users.filter((u) => !task?.assignees.includes(u.id)))
+      }).catch(() => {
+        toast.error('Failed to load users')
+      }).finally(() => {
+        setLoadingUsers(false)
+      })
+    }
+  }, [editingAssignees])
 
-      setSearching(true)
-      try {
-        const results = await authAPI.searchUsers(searchQuery)
-        setSearchResults(
-          results.filter((u) => !task?.assignees.includes(u.id))
-        )
-      } catch (err: any) {
-        toast.error('Failed to search users')
-      } finally {
-        setSearching(false)
-      }
-    }, 300)
+  // Filter users based on search query
+  useEffect(() => {
+    if (searchQuery.length < 1) {
+      setSearchResults(allUsers.filter((u) => !task?.assignees.includes(u.id)))
+      return
+    }
 
-    return () => clearTimeout(timer)
-  }, [searchQuery, task?.assignees, toast])
+    setSearching(true)
+    try {
+      const query = searchQuery.toLowerCase()
+      const filtered = allUsers.filter((u) =>
+        !task?.assignees.includes(u.id) &&
+        (u.username.toLowerCase().includes(query) || u.email.toLowerCase().includes(query))
+      )
+      setSearchResults(filtered)
+    } finally {
+      setSearching(false)
+    }
+  }, [searchQuery, allUsers, task?.assignees])
 
   const handleStatusChange = async (newStatus: any) => {
     if (!task) return
@@ -233,7 +248,6 @@ export function TaskDetailPage() {
       const updated = await tasksAPI.update(task.id, {
         assignees: [...task.assignees, userId],
       })
-      setTask(updated)
       updateTask(updated)
       setSearchQuery('')
       setSearchResults([])
@@ -253,7 +267,6 @@ export function TaskDetailPage() {
       const updated = await tasksAPI.update(task.id, {
         assignees: task.assignees.filter((id) => id !== assigneeId),
       })
-      setTask(updated)
       updateTask(updated)
       toast.success('Assignee removed')
     } catch (err: any) {
@@ -384,21 +397,30 @@ export function TaskDetailPage() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="text-sm"
                     />
-                    {searchQuery && searchResults.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded shadow-lg z-10">
-                        {searchResults.map((user) => (
-                          <button
-                            key={user.id}
-                            onClick={() => handleAddAssignee(user.id)}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm border-b last:border-b-0"
-                          >
-                            <div className="font-medium">{user.username}</div>
-                            <div className="text-xs text-gray-500">{user.email}</div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
                   </div>
+                  {loadingUsers ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Spinner size="sm" />
+                      <span className="ml-2 text-sm">Loading users...</span>
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    <div className="border rounded max-h-64 overflow-y-auto">
+                      {searchResults.map((user) => (
+                        <button
+                          key={user.id}
+                          onClick={() => handleAddAssignee(user.id)}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm border-b last:border-b-0 transition"
+                        >
+                          <div className="font-medium">{user.username}</div>
+                          <div className="text-xs text-gray-500">{user.email}</div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 py-2">
+                      {searchQuery ? 'No users found' : 'No more users to add'}
+                    </p>
+                  )}
                   {(task as any).assigneesData && (task as any).assigneesData.length > 0 && (
                     <div className="space-y-1">
                       {(task as any).assigneesData.map((assignee: any) => (
