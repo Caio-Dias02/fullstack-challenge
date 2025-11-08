@@ -6,20 +6,15 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS for HTTP endpoints
+  // Enable CORS for all origins (development only)
   app.enableCors({
-    origin: [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:3000',
-    ],
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  // Use Socket.IO adapter with CORS
+  // Use Socket.IO adapter
   app.useWebSocketAdapter(new IoAdapter(app));
 
   const port = process.env.PORT || 3003;
