@@ -6,4 +6,4 @@ require('tsconfig-paths').register({
     '@fullstack-challenge/types/*': ['dist/packages/types/*']
   }
 });
-require('./dist/apps/notifications-service/src/main.js');
+require('./dist/src/main.js');

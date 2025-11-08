@@ -14,32 +14,47 @@ export class EventsHandler implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   async onModuleInit() {
-    try {
-      const rabbitmqUrl = this.configService.get('RABBITMQ_URL');
-      this.connection = await amqp.connect(rabbitmqUrl);
-      this.channel = await this.connection.createChannel();
+    const maxRetries = 10;
+    let retries = 0;
+    const retryDelay = 2000; // 2 seconds
 
-      // Declara exchange
-      await this.channel.assertExchange('tasks.events', 'topic', {
-        durable: true,
-      });
+    const attemptConnection = async () => {
+      try {
+        const rabbitmqUrl = this.configService.get('RABBITMQ_URL') || 'amqp://admin:admin@rabbitmq:5672';
+        this.connection = await amqp.connect(rabbitmqUrl);
+        this.channel = await this.connection.createChannel();
 
-      // Declara queue
-      await this.channel.assertQueue('notifications_queue', {
-        durable: true,
-      });
+        // Declara exchange
+        await this.channel.assertExchange('tasks.events', 'topic', {
+          durable: true,
+        });
 
-      // Bind queue ao exchange com routing keys
-      await this.channel.bindQueue('notifications_queue', 'tasks.events', 'task.*');
-      await this.channel.bindQueue('notifications_queue', 'tasks.events', 'comment.*');
+        // Declara queue
+        await this.channel.assertQueue('notifications_queue', {
+          durable: true,
+        });
 
-      // Setup listeners
-      await this.setupEventListeners();
-      console.log('🎧 Event handler initialized - listening for events');
-    } catch (error) {
-      console.error('❌ Failed to initialize event handler:', error);
-      throw error;
-    }
+        // Bind queue ao exchange com routing keys
+        await this.channel.bindQueue('notifications_queue', 'tasks.events', 'task.*');
+        await this.channel.bindQueue('notifications_queue', 'tasks.events', 'comment.*');
+
+        // Setup listeners
+        await this.setupEventListeners();
+        console.log('🎧 Event handler initialized - listening for events');
+      } catch (error) {
+        retries++;
+        if (retries < maxRetries) {
+          console.warn(`⚠️ Failed to connect to RabbitMQ (attempt ${retries}/${maxRetries}), retrying in ${retryDelay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          return attemptConnection();
+        } else {
+          console.error('❌ Failed to initialize event handler after max retries:', error);
+          // Don't throw - allow app to continue without event handler
+        }
+      }
+    };
+
+    await attemptConnection();
   }
 
   private async setupEventListeners() {

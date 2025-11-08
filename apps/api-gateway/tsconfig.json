@@ -11,6 +11,6 @@
       "@fullstack-challenge/types/*": ["packages/types/*"]
     }
   },
-  "include": ["src/**/*", "../../packages/types/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.spec.ts"]
 }
