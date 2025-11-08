@@ -15,9 +15,9 @@ RUN pnpm install -r
 # Development stage
 FROM base AS development
 COPY apps/tasks-service/ ./apps/tasks-service/
+WORKDIR /usr/src/app
+RUN pnpm install --prod=false -r
 WORKDIR /usr/src/app/apps/tasks-service
-RUN pnpm install --prod=false
-RUN tsc || true
 EXPOSE 3002
 CMD ["npm", "run", "dev"]
 

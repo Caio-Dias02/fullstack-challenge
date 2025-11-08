@@ -15,8 +15,9 @@ RUN pnpm install --frozen-lockfile
 # Development stage
 FROM base AS development
 COPY apps/web/ ./apps/web/
+WORKDIR /app
+RUN pnpm install --prod=false -r
 WORKDIR /app/apps/web
-RUN pnpm install
 EXPOSE 5173
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 

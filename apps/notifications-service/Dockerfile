@@ -16,7 +16,7 @@ RUN pnpm install --frozen-lockfile
 FROM base AS development
 COPY apps/notifications-service/ ./apps/notifications-service/
 WORKDIR /usr/src/app
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install --prod=false -r
 WORKDIR /usr/src/app/apps/notifications-service
 EXPOSE 3003
 CMD ["npm", "run", "dev"]

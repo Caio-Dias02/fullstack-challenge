@@ -15,9 +15,9 @@ RUN pnpm install -r
 # Development stage
 FROM base AS development
 COPY apps/auth-service/ ./apps/auth-service/
+WORKDIR /usr/src/app
+RUN pnpm install --prod=false -r
 WORKDIR /usr/src/app/apps/auth-service
-RUN pnpm install --prod=false
-RUN tsc || true
 EXPOSE 3001
 CMD ["npm", "run", "dev"]
 
