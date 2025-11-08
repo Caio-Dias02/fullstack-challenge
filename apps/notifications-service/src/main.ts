@@ -20,9 +20,7 @@ async function bootstrap() {
   });
 
   // Use Socket.IO adapter with CORS
-  const ioAdapter = new IoAdapter(app);
-  ioAdapter.connectionsCount = 0;
-  app.useWebSocketAdapter(ioAdapter);
+  app.useWebSocketAdapter(new IoAdapter(app));
 
   const port = process.env.PORT || 3003;
 
