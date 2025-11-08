@@ -19,21 +19,8 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  // Use Socket.IO adapter with CORS for both WebSocket and polling
-  app.useWebSocketAdapter(
-    new IoAdapter(app, {
-      cors: {
-        origin: [
-          'http://localhost:5173',
-          'http://localhost:3000',
-          'http://127.0.0.1:5173',
-          'http://127.0.0.1:3000',
-        ],
-        credentials: true,
-        methods: ['GET', 'POST'],
-      },
-    })
-  );
+  // Use Socket.IO adapter with CORS
+  app.useWebSocketAdapter(new IoAdapter(app));
 
   const port = process.env.PORT || 3003;
 
