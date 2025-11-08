@@ -14,9 +14,8 @@ RUN pnpm install -r
 
 # Development stage
 FROM base AS development
-COPY apps/auth-service/ ./apps/auth-service/
+COPY apps/ ./apps/
 WORKDIR /usr/src/app
-RUN pnpm install --prod=false -r
 WORKDIR /usr/src/app/apps/auth-service
 EXPOSE 3001
 CMD ["npm", "run", "dev"]

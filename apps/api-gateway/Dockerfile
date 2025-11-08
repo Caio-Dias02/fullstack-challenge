@@ -14,9 +14,8 @@ RUN pnpm install -r
 
 # Development stage
 FROM base AS development
-COPY apps/api-gateway/ ./apps/api-gateway/
+COPY apps/ ./apps/
 WORKDIR /usr/src/app
-RUN pnpm install --prod=false -r
 WORKDIR /usr/src/app/apps/api-gateway
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
