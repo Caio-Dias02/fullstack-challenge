@@ -7,7 +7,8 @@ export class CreateCommentDto {
   body!: string;
 
   @IsUUID()
-  taskId!: string;
+  @IsOptional()
+  taskId?: string;
 
   @IsUUID()
   @IsOptional()
