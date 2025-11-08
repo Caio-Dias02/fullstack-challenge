@@ -16,6 +16,8 @@ RUN pnpm install -r
 FROM base AS development
 COPY apps/ ./apps/
 WORKDIR /usr/src/app
+# Build types package first to generate .d.ts files
+RUN pnpm --filter @fullstack-challenge/types build || true
 WORKDIR /usr/src/app/apps/tasks-service
 EXPOSE 3002
 CMD ["npm", "run", "dev"]

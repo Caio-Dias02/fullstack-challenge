@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Task } from "./entities/task.entity";
-import { CreateTaskDto, UpdateTaskDto } from "../../../../packages/types";
+import { CreateTaskDto, UpdateTaskDto } from "@fullstack-challenge/types";
 import { TaskHistoryService } from "../task-history/task-history.service";
 import { EventsService } from "../events/events.service";
 import { UsersService, UserData } from "./users.service";

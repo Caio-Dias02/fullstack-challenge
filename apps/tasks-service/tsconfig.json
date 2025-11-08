@@ -23,6 +23,6 @@
     "noEmitOnError": false
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts", "../../packages/**"]
+  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
 }
 
