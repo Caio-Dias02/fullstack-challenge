@@ -18,7 +18,7 @@ COPY apps/notifications-service/ ./apps/notifications-service/
 WORKDIR /usr/src/app
 RUN pnpm install --no-frozen-lockfile
 WORKDIR /usr/src/app/apps/notifications-service
-EXPOSE 3004
+EXPOSE 3003
 CMD ["npm", "run", "dev"]
 
 # Production stage
@@ -26,5 +26,5 @@ FROM base AS production
 COPY apps/notifications-service/ ./apps/notifications-service/
 WORKDIR /usr/src/app/apps/notifications-service
 RUN npm run build
-EXPOSE 3004
-CMD ["node", "dist/main.js"]
+EXPOSE 3003
+CMD ["node", "start.js"]

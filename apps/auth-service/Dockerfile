@@ -18,13 +18,13 @@ COPY apps/auth-service/ ./apps/auth-service/
 WORKDIR /usr/src/app/apps/auth-service
 RUN pnpm install --prod=false
 RUN tsc || true
-EXPOSE 3002
-CMD ["npm", "run", "start:dev"]
+EXPOSE 3001
+CMD ["npm", "run", "dev"]
 
 # Production stage
 FROM base AS production
 COPY apps/auth-service/ ./apps/auth-service/
 WORKDIR /usr/src/app/apps/auth-service
 RUN npm run build
-EXPOSE 3002
-CMD ["node", "dist/main.js"]
+EXPOSE 3001
+CMD ["node", "start.js"]

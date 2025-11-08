@@ -19,12 +19,12 @@ WORKDIR /usr/src/app/apps/api-gateway
 RUN pnpm install --prod=false
 RUN tsc || true
 EXPOSE 3000
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "dev"]
 
 # Production stage
 FROM base AS production
 COPY apps/api-gateway/ ./apps/api-gateway/
 WORKDIR /usr/src/app/apps/api-gateway
 RUN npm run build
-EXPOSE 3001
-CMD ["node", "dist/main.js"]
+EXPOSE 3000
+CMD ["node", "start.js"]

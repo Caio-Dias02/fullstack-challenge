@@ -18,7 +18,7 @@ COPY apps/tasks-service/ ./apps/tasks-service/
 WORKDIR /usr/src/app/apps/tasks-service
 RUN pnpm install --prod=false
 RUN tsc || true
-EXPOSE 3003
+EXPOSE 3002
 CMD ["npm", "run", "dev"]
 
 # Production stage
@@ -26,5 +26,5 @@ FROM base AS production
 COPY apps/tasks-service/ ./apps/tasks-service/
 WORKDIR /usr/src/app/apps/tasks-service
 RUN npm run build
-EXPOSE 3003
-CMD ["node", "dist/main.js"]
+EXPOSE 3002
+CMD ["node", "start.js"]
