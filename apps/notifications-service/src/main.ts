@@ -6,7 +6,8 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const corsOptions = {
+  // Enable CORS for HTTP endpoints
+  app.enableCors({
     origin: [
       'http://localhost:5173',
       'http://localhost:3000',
@@ -14,13 +15,25 @@ async function bootstrap() {
       'http://127.0.0.1:3000',
     ],
     credentials: true,
-  };
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
 
-  // Enable CORS for HTTP
-  app.enableCors(corsOptions);
-
-  // Use Socket.IO adapter with CORS configuration
-  app.useWebSocketAdapter(new IoAdapter(app, { cors: corsOptions }));
+  // Use Socket.IO adapter with CORS for both WebSocket and polling
+  app.useWebSocketAdapter(
+    new IoAdapter(app, {
+      cors: {
+        origin: [
+          'http://localhost:5173',
+          'http://localhost:3000',
+          'http://127.0.0.1:5173',
+          'http://127.0.0.1:3000',
+        ],
+        credentials: true,
+        methods: ['GET', 'POST'],
+      },
+    })
+  );
 
   const port = process.env.PORT || 3003;
 
