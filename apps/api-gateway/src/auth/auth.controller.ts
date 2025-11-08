@@ -56,7 +56,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response
   ) {
     const response = await firstValueFrom(
-      this.httpService.post(`${this.authServiceUrl}/auth/login`, loginDto)
+      this.httpService.post(`${this.authServiceUrl}/auth/login`, loginDto, { withCredentials: true })
     );
 
     const { accessToken } = response.data;

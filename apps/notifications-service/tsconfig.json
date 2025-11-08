@@ -24,6 +24,6 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../../packages/types/**/*"],
   "exclude": ["node_modules", "dist", "**/*.spec.ts"]
 }
