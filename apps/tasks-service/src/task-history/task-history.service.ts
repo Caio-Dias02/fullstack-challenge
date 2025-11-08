@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TaskHistory } from './entities/task-history.entity';
@@ -12,6 +12,7 @@ export class TaskHistoryService {
     private readonly historyRepo: Repository<TaskHistory>,
     @InjectRepository(Task)
     private readonly taskRepo: Repository<Task>,
+    @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
   ) {}
 
