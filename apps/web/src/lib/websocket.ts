@@ -17,6 +17,8 @@ export const connectWebSocket = (userId: string, token: string): Socket => {
     reconnectionDelay: 1000,
     reconnectionDelayMax: 5000,
     reconnectionAttempts: 5,
+    withCredentials: true,
+    transports: ['websocket', 'polling'],
   })
 
   socket.on('connect', () => {

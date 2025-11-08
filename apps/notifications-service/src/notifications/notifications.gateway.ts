@@ -13,18 +13,17 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 @WebSocketGateway({
-  namespace: '/',
   cors: {
     origin: [
-      'http://localhost:3000',
       'http://localhost:5173',
-      'http://127.0.0.1:3000',
       'http://127.0.0.1:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
     ],
     credentials: true,
     methods: ['GET', 'POST'],
   },
-  transports: ['websocket', 'polling'],
+  allowEIO3: true,
 })
 export class NotificationsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
