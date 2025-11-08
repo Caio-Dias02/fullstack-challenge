@@ -1,7 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { ThrottlerGuard } from '@nestjs/throttler';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
@@ -21,8 +20,6 @@ async function bootstrap() {
       whitelist: true,
     })
   );
-
-  app.useGlobalGuards(app.get(ThrottlerGuard));
 
   // Swagger
   const config = new DocumentBuilder()

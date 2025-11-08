@@ -18,8 +18,8 @@ COPY apps/api-gateway/ ./apps/api-gateway/
 WORKDIR /usr/src/app/apps/api-gateway
 RUN pnpm install --prod=false
 RUN tsc || true
-EXPOSE 3001
-CMD ["npm", "run", "dev"]
+EXPOSE 3000
+CMD ["npm", "run", "start"]
 
 # Production stage
 FROM base AS production
