@@ -2,6 +2,7 @@
   "language": "ts",
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
+  "entryFile": "apps/notifications-service/src/main",
   "compilerOptions": {
     "deleteOutDir": true
   }
