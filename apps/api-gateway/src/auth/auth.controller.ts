@@ -30,10 +30,17 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Invalid input' })
   @ApiResponse({ status: 409, description: 'Email or username already exists' })
   async register(@Body() registerDto: any) {
-    const response = await firstValueFrom(
-      this.httpService.post(`${this.authServiceUrl}/auth/register`, registerDto)
-    );
-    return response.data;
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(`${this.authServiceUrl}/auth/register`, registerDto)
+      );
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 409) {
+        throw error.response.data;
+      }
+      throw error;
+    }
   }
 
   @Post('login')
@@ -55,21 +62,29 @@ export class AuthController {
     @Body() loginDto: any,
     @Res({ passthrough: true }) res: Response
   ) {
-    const response = await firstValueFrom(
-      this.httpService.post(`${this.authServiceUrl}/auth/login`, loginDto, { withCredentials: true })
-    );
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(`${this.authServiceUrl}/auth/login`, loginDto, { withCredentials: true })
+      );
 
-    const { accessToken } = response.data;
+      const { accessToken } = response.data;
 
-    if (accessToken) {
-      res.cookie('accessToken', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 15 * 60 * 1000,
-      });
+      if (accessToken) {
+        res.cookie('accessToken', accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          maxAge: 15 * 60 * 1000,
+        });
+      }
+
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        res.status(401);
+        return error.response.data;
+      }
+      throw error;
     }
-
-    return response.data;
   }
 
   @Post('refresh')
