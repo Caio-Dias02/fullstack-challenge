@@ -10,7 +10,7 @@ export interface UserData {
 
 @Injectable()
 export class UsersService {
-  private readonly authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
+  private readonly authServiceUrl = process.env.AUTH_SERVICE_URL || 'http://auth-service:3001';
 
   constructor(private readonly httpService: HttpService) {}
 
@@ -18,6 +18,8 @@ export class UsersService {
     if (!userIds || userIds.length === 0) {
       return new Map();
     }
+
+    console.log(`📥 getUsersByIds called with ${userIds.length} users, auth service URL: ${this.authServiceUrl}`);
 
     const userMap = new Map<string, UserData>();
 
@@ -33,16 +35,21 @@ export class UsersService {
     );
 
     await Promise.allSettled(promises);
+    console.log(`📤 getUsersByIds returning map with ${userMap.size} users`);
     return userMap;
   }
 
   private async getUserById(userId: string): Promise<UserData | null> {
     try {
+      const url = `${this.authServiceUrl}/auth/users/${userId}`;
+      console.log(`🔍 Fetching user ${userId} from ${url}`);
       const response = await firstValueFrom(
-        this.httpService.get(`${this.authServiceUrl}/auth/users/${userId}`)
+        this.httpService.get(url)
       );
+      console.log(`✅ Got user ${userId}:`, response.data);
       return response.data;
-    } catch {
+    } catch (error) {
+      console.error(`❌ Failed to fetch user ${userId}:`, error instanceof Error ? error.message : error);
       return null;
     }
   }

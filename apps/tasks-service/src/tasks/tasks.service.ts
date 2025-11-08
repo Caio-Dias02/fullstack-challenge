@@ -126,10 +126,12 @@ export class TasksService {
   }
 
   async enrichTaskWithAssigneeData(task: Task): Promise<any> {
+    console.log(`🎯 enrichTaskWithAssigneeData called for task ${task.id}`);
     const enriched: any = { ...task, assigneesData: [], creatorData: null };
 
     // Enrich assignees
     if (task.assignees && task.assignees.length > 0) {
+      console.log(`  ├─ Enriching ${task.assignees.length} assignees`);
       const userMap = await this.usersService.getUsersByIds(task.assignees);
       const assigneesData: UserData[] = [];
 
@@ -141,14 +143,17 @@ export class TasksService {
       }
 
       enriched.assigneesData = assigneesData;
+      console.log(`  └─ Got ${assigneesData.length} assignee data`);
     }
 
     // Enrich creator
     if (task.creatorId) {
+      console.log(`  ├─ Enriching creator ${task.creatorId}`);
       const creatorData = await this.usersService.getUsersByIds([task.creatorId]);
       const creator = creatorData.get(task.creatorId);
       if (creator) {
         enriched.creatorData = creator;
+        console.log(`  └─ Got creator data`);
       }
     }
 
