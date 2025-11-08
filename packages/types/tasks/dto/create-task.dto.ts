@@ -55,7 +55,6 @@ export class CreateTaskDto {
   @IsUUID('4', { each: true })
   assignees?: string[];
 
-  @IsString()
-  @IsUUID()
-  creatorId!: string;
+  // creatorId is automatically assigned by the API Gateway from JWT
+  creatorId?: string;
 }
