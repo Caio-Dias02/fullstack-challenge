@@ -57,13 +57,18 @@ export class CommentsService {
   }
 
   private async enrichCommentWithAuthorData(comment: Comment): Promise<any> {
+    console.log(`🎯 enrichCommentWithAuthorData called for comment ${comment.id}`);
     const enriched: any = { ...comment, authorData: null };
 
     if (comment.authorId) {
+      console.log(`  ├─ Enriching author ${comment.authorId}`);
       const authorMap = await this.usersService.getUsersByIds([comment.authorId]);
       const author = authorMap.get(comment.authorId);
       if (author) {
         enriched.authorData = author;
+        console.log(`  └─ Got author data:`, author);
+      } else {
+        console.log(`  └─ No author data found`);
       }
     }
 

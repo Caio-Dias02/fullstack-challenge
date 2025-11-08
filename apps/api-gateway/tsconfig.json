@@ -9,8 +9,9 @@
     "paths": {
       "@fullstack-challenge/types": ["packages/types"],
       "@fullstack-challenge/types/*": ["packages/types/*"]
-    }
+    },
+    "noEmitOnError": false
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "../../packages/**"]
 }
