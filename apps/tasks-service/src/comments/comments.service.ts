@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Comment } from './entities/comment.entity';
 import { Task } from '../tasks/entities/task.entity';
-import { CreateCommentDto } from '@fullstack-challenge/types/comments/dto/create-comment.dto';
+import { CreateCommentDto } from '../../../../packages/types/comments/dto/create-comment.dto';
 import { EventsService } from '../events/events.service';
 import { UsersService } from '../tasks/users.service';
 

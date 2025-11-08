@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { TasksService } from './tasks.service';
-import { CreateTaskDto, UpdateTaskDto } from '@fullstack-challenge/types';
+import { CreateTaskDto, UpdateTaskDto } from '../../../../packages/types';
 
 @Controller()
 export class TasksMessageHandler {

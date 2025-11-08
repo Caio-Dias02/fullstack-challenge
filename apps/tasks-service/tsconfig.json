@@ -12,12 +12,9 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "../../",
-    "paths": {
-      "@fullstack-challenge/types": ["../../packages/types"],
-      "@fullstack-challenge/types/*": ["../../packages/types/*"]
-    },
     "incremental": true,
     "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
     "strictBindCallApply": false,

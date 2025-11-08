@@ -1,7 +1,7 @@
 import { Controller, Post, Get, Body, Param } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CommentsService } from './comments.service';
-import { CreateCommentDto } from '@fullstack-challenge/types';
+import { CreateCommentDto } from '../../../../packages/types';
 
 @Controller('tasks/:taskId/comments')
 export class CommentsController {
