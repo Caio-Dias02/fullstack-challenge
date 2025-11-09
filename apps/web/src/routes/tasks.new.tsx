@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
+import { useNavigate, Link } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useTasksStore } from '@/store/tasks'
 import { Spinner } from '@/components/spinner'
 import { useCreateTask } from '@/hooks/useTasksQuery'
-import { rootRoute } from './__root'
 import { pt } from '@/lib/translations'
 
 const createTaskSchema = z.object({
@@ -28,11 +27,6 @@ const createTaskSchema = z.object({
 })
 
 type CreateTaskForm = z.infer<typeof createTaskSchema>
-
-export const Route = createFileRoute('/tasks/new')({
-  getParentRoute: () => rootRoute,
-  component: NewTaskPage,
-})
 
 export function NewTaskPage() {
   const navigate = useNavigate()

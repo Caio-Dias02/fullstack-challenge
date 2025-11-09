@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
+import { useNavigate, Link } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -10,7 +10,6 @@ import { useAuthStore } from '@/store/auth'
 import { useToast } from '@/store/toast'
 import { authAPI } from '@/api/auth'
 import { Spinner } from '@/components/spinner'
-import { rootRoute } from './__root'
 import { pt } from '@/lib/translations'
 
 const loginSchema = z.object({
@@ -19,11 +18,6 @@ const loginSchema = z.object({
 })
 
 type LoginForm = z.infer<typeof loginSchema>
-
-export const Route = createFileRoute('/login')({
-  getParentRoute: () => rootRoute,
-  component: LoginPage,
-})
 
 export function LoginPage() {
   const navigate = useNavigate()

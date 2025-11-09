@@ -1,4 +1,4 @@
-import { createFileRoute, useParams, useNavigate, Link } from '@tanstack/react-router'
+import { useParams, useNavigate, Link } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -46,10 +46,6 @@ const editTaskSchema = z.object({
 })
 
 type EditTaskForm = z.infer<typeof editTaskSchema>
-
-export const Route = createFileRoute()({
-  component: TaskDetailPage,
-})
 
 export function TaskDetailPage() {
   const { id } = useParams({ from: '/tasks/$id' })
