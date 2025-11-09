@@ -79,7 +79,7 @@ Sistema colaborativo gerenciamento tarefas. Microserviços, real-time WebSocket,
 | Escolha | Vantagem | Desvantagem |
 |---------|----------|------------|
 | Hard Delete | Lógica simples | Sem recuperação |
-| Sem Paginação | MVP rápido | Problema em prod (N+1) |
+| Paginação Frontend (6/página) | Carregamento rápido | Sem offset backend |
 | localStorage Tokens | Implementação fácil | Vulnerável XSS |
 | Sem Testes | Economia tempo | Risco regressões |
 | Sem Soft Delete | Menos complexity | Difícil auditoria |
@@ -123,11 +123,12 @@ enriched.assigneesData = Array.from(userMap.values());
 
 ### 3. Limitações Atuais
 
+- Sem testes automatizados (zero cobertura)
 - Hard delete (sem recuperação)
-- Sem paginação (carrega tudo)
-- Sem search/filtro avançado
-- Reconnection WebSocket não testado
-- Rate limiting sem testes carga
+- Paginação apenas frontend (backend carrega tudo)
+- Sem search/filtro avançado (apenas título)
+- Frontend não exibe task history
+- `synchronize: true` em DB (risco produção)
 
 ---
 
@@ -289,19 +290,6 @@ curl http://localhost:3002/health
 curl http://localhost:3003/health
 curl http://localhost:15672/api/overview -u guest:guest
 ```
-
----
-
-## 🎯 Melhorias Futuras
-
-**Curto Prazo:**
-Testes unitários • Soft delete • Paginação • HTTP-only cookies • Validação datas
-
-**Médio Prazo:**
-Audit log • Structured logging (Winston) • Full-text search • Task templates • Health checks • E2E tests
-
-**Longo Prazo:**
-Multi-tenant workspaces • Activity feed • Email notifications • File attachments • Task dependencies • Mobile (React Native) • Monitoring (Prometheus)
 
 ---
 
