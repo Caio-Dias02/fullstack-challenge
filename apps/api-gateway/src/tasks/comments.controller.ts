@@ -33,12 +33,38 @@ export class CommentsController implements OnModuleInit {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  @ApiOperation({ summary: 'Create a comment on a task' })
-  @ApiParam({ name: 'taskId', description: 'Task ID' })
-  @ApiBody({ type: CreateCommentDto })
-  @ApiResponse({ status: 201, description: 'Comment created successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid input' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiOperation({
+    summary: 'Create comment on task',
+    description: 'Add a new comment to a task. Comment author is set to authenticated user. Only task assignees can comment.'
+  })
+  @ApiParam({ name: 'taskId', description: 'Task ID (UUID)', example: '550e8400-e29b-41d4-a716-446655440000' })
+  @ApiBody({
+    type: CreateCommentDto,
+    description: 'Comment data',
+    schema: {
+      type: 'object',
+      properties: {
+        body: { type: 'string', minLength: 1, maxLength: 1000, example: 'Great progress on this task!' },
+      },
+      required: ['body']
+    }
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Comment created',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', format: 'uuid' },
+        body: { type: 'string' },
+        authorId: { type: 'string', format: 'uuid' },
+        taskId: { type: 'string', format: 'uuid' },
+        createdAt: { type: 'string', format: 'date-time' },
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: 'Validation error - empty body' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - missing or invalid JWT token' })
   @ApiResponse({ status: 404, description: 'Task not found' })
   async create(
     @Param('taskId') taskId: string,
@@ -54,11 +80,30 @@ export class CommentsController implements OnModuleInit {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  @ApiOperation({ summary: 'List comments on a task' })
-  @ApiParam({ name: 'taskId', description: 'Task ID' })
-  @ApiResponse({ status: 200, description: 'Comments retrieved successfully' })
+  @ApiOperation({
+    summary: 'List task comments',
+    description: 'Retrieve all comments on a task in chronological order (oldest first). Only task assignees can view comments.'
+  })
+  @ApiParam({ name: 'taskId', description: 'Task ID (UUID)', example: '550e8400-e29b-41d4-a716-446655440000' })
+  @ApiResponse({
+    status: 200,
+    description: 'Comments list retrieved',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          body: { type: 'string' },
+          authorId: { type: 'string', format: 'uuid' },
+          taskId: { type: 'string', format: 'uuid' },
+          createdAt: { type: 'string', format: 'date-time' },
+        }
+      }
+    }
+  })
   @ApiResponse({ status: 404, description: 'Task not found' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - missing or invalid JWT token' })
   async findByTask(@Param('taskId') taskId: string) {
     return await this.client.send({ cmd: 'get_comments' }, { taskId }).toPromise();
   }
