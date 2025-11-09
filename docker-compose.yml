@@ -8,6 +8,9 @@ services:
       target: development
     ports:
       - "5173:5173"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
     environment:
       - NODE_ENV=development
       - VITE_API_URL=http://localhost:3000/api
@@ -29,8 +32,8 @@ services:
       - "3000:3000"
     volumes:
       - .:/usr/src/app
+      - node_modules_root:/usr/src/app/node_modules
       - api_gateway_node_modules:/usr/src/app/apps/api-gateway/node_modules
-      - root_node_modules:/usr/src/app/node_modules
     environment:
       - NODE_ENV=development
       - PORT=3000
@@ -59,8 +62,8 @@ services:
       - "3001:3001"
     volumes:
       - .:/usr/src/app
+      - node_modules_root:/usr/src/app/node_modules
       - auth_service_node_modules:/usr/src/app/apps/auth-service/node_modules
-      - root_node_modules:/usr/src/app/node_modules
     environment:
       - NODE_ENV=development
       - PORT=3001
@@ -92,8 +95,8 @@ services:
       - "3002:3002"
     volumes:
       - .:/usr/src/app
+      - node_modules_root:/usr/src/app/node_modules
       - tasks_service_node_modules:/usr/src/app/apps/tasks-service/node_modules
-      - root_node_modules:/usr/src/app/node_modules
     environment:
       - NODE_ENV=development
       - PORT=3002
@@ -122,8 +125,8 @@ services:
       - "3003:3003"
     volumes:
       - .:/usr/src/app
+      - node_modules_root:/usr/src/app/node_modules
       - notifications_service_node_modules:/usr/src/app/apps/notifications-service/node_modules
-      - root_node_modules:/usr/src/app/node_modules
     environment:
       - NODE_ENV=development
       - PORT=3003
@@ -189,6 +192,8 @@ volumes:
     driver: local
   rabbitmq_data:
     driver: local
+  node_modules_root:
+    driver: local
   api_gateway_node_modules:
     driver: local
   auth_service_node_modules:
@@ -196,8 +201,6 @@ volumes:
   tasks_service_node_modules:
     driver: local
   notifications_service_node_modules:
-    driver: local
-  root_node_modules:
     driver: local
 
 networks:

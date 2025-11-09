@@ -10,7 +10,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "dev": "concurrently \"tsc --watch --noEmitOnError false\" \"nodemon --delay 2 --watch dist --exec node start.js\"",
+    "dev": "nest start --watch",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node -r tsconfig-paths/register ../../dist/apps/auth-service/apps/auth-service/src/main",

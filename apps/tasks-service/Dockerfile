@@ -4,23 +4,25 @@ WORKDIR /usr/src/app
 
 # Copy workspace files first
 COPY .npmrc package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY tsconfig.json ./
 COPY packages/ ./packages/
 
 # Install pnpm and nestjs-cli
-RUN npm install -g pnpm @nestjs/cli
+RUN npm install -g pnpm
 
 # Install dependencies recursively
-RUN pnpm install -r
+RUN pnpm install --prod=false -r
 
 # Development stage
 FROM base AS development
 COPY apps/ ./apps/
 WORKDIR /usr/src/app
+RUN pnpm install --prod=false -r || true
 # Build types package first to generate .d.ts files
 RUN pnpm --filter @fullstack-challenge/types build || true
 WORKDIR /usr/src/app/apps/tasks-service
 EXPOSE 3002
-CMD ["npm", "run", "dev"]
+CMD ["sh", "-c", "pnpm install --prod=false -r 2>/dev/null || true && pnpm run dev"]
 
 # Production stage
 FROM base AS production
