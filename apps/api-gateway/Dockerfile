@@ -1,32 +1,39 @@
-FROM node:24 AS base
-
+# Build stage
+FROM node:22-alpine as development
 WORKDIR /usr/src/app
 
-# Copy workspace files first
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY tsconfig.json ./
-COPY packages/ ./packages/
-COPY packages/ ./packages/
+# Install pnpm
+RUN npm install -g pnpm@10.14.0
 
-# Install pnpm and nestjs-cli
-RUN npm install -g pnpm
+# Copy all source files except node_modules and dist
+COPY . .
 
-# Install dependencies recursively with all dependencies
-RUN pnpm install --prod=false -r
+# Install dependencies
+RUN pnpm install --frozen-lockfile
 
-# Development stage
-FROM base AS development
-COPY apps/ ./apps/
-WORKDIR /usr/src/app
-RUN pnpm install --prod=false -r || true
-WORKDIR /usr/src/app/apps/api-gateway
-EXPOSE 3000
-CMD ["sh", "-c", "pnpm install --prod=false -r 2>/dev/null || true && pnpm run dev"]
+# Build application
+RUN pnpm --filter @fullstack-challenge/api-gateway run build
 
 # Production stage
-FROM base AS production
-COPY apps/api-gateway/ ./apps/api-gateway/
-WORKDIR /usr/src/app/apps/api-gateway
-RUN npm run build
+FROM node:22-alpine as production
+WORKDIR /usr/src/app
+
+# Install pnpm
+RUN npm install -g pnpm@10.14.0
+
+# Copy all source files except node_modules and dist
+COPY . .
+
+# Install dependencies (production only)
+RUN pnpm install --frozen-lockfile --prod && \
+    rm -rf apps/*/src && \
+    rm -rf .git .github
+
+# Copy built application from builder
+COPY --from=development /usr/src/app/dist ./dist
+
+# Expose port
 EXPOSE 3000
-CMD ["node", "start.js"]
+
+# Start application
+CMD ["node", "dist/apps/api-gateway/src/main.js"]

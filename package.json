@@ -6,7 +6,7 @@
   "scripts": {
     "dev:auth": "pnpm --filter @fullstack-challenge/auth-service dev",
     "dev:tasks": "pnpm --filter @fullstack-challenge/tasks-service dev",
-    "dev:api": "pnpm --filter api-gateway dev",
+    "dev:api": "pnpm --filter @fullstack-challenge/api-gateway dev",
     "dev:notifications": "pnpm --filter @fullstack-challenge/notifications-service dev"
   },
   "devDependencies": {
