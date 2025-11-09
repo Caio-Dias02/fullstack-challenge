@@ -61,28 +61,28 @@ Sistema colaborativo gerenciamento tarefas. Microserviços, real-time WebSocket,
 
 ---
 
-## 🛠️ Decisões Técnicas & Trade-offs
+## 🛠️ Decisões Técnicas
 
 ### ✅ Acertadas
 
 | Decisão | Por Quê | Benefício |
 |---------|---------|-----------|
-| **Microserviços** | Separação responsabilidades | Escalabilidade, deploys independentes |
-| **RabbitMQ** | Desacoplamento | Services não dependem uns dos outros |
-| **WebSocket** | Real-time nativo | UX imediata, sem polling |
-| **JWT Stateless** | Escalável | Perfeito multi-instância |
-| **TypeORM + Migrations** | Versionamento schema | Rollback seguro |
-| **DB per Service** | Independência dados | Sem foreign keys entre services |
+| Microserviços | Separação responsabilidades | Escalabilidade, deploys independentes |
+| RabbitMQ | Desacoplamento serviços | Sem dependências síncronas |
+| WebSocket | Real-time nativo | UX imediata, sem polling |
+| JWT Stateless | Escalável multi-instância | Sem sessão centralizada |
+| TypeORM + Migrations | Versionamento schema | Rollback seguro |
+| DB por Serviço | Independência dados | Sem foreign keys inter-services |
 
 ### ⚠️ Trade-offs
 
-| Escolha | Pro | Contra |
-|---------|-----|--------|
-| **Hard Delete** | Lógica simples | Sem recuperação dados |
-| **Sem Paginação** | MVP rápido | Problema em produção (N+1) |
-| **localStorage Tokens** | Fácil | Vulnerável XSS |
-| **Sem Audit Log** | Menos tabelas | Difícil rastrear mudanças |
-| **Sem Testes** | Economia tempo | Risco regressões |
+| Escolha | Vantagem | Desvantagem |
+|---------|----------|------------|
+| Hard Delete | Lógica simples | Sem recuperação |
+| Sem Paginação | MVP rápido | Problema em prod (N+1) |
+| localStorage Tokens | Implementação fácil | Vulnerável XSS |
+| Sem Testes | Economia tempo | Risco regressões |
+| Sem Soft Delete | Menos complexity | Difícil auditoria |
 
 ---
 
@@ -121,12 +121,12 @@ const userMap = await this.usersService.getUsersByIds(ids);
 enriched.assigneesData = Array.from(userMap.values());
 ```
 
-### 3. Limitações
+### 3. Limitações Atuais
 
-- Sem soft delete (recuperação impossível)
+- Hard delete (sem recuperação)
 - Sem paginação (carrega tudo)
-- Sem search avançado
-- Socket.io reconnection não testado
+- Sem search/filtro avançado
+- Reconnection WebSocket não testado
 - Rate limiting sem testes carga
 
 ---
@@ -292,31 +292,16 @@ curl http://localhost:15672/api/overview -u guest:guest
 
 ---
 
-## 🎯 O Que Melhoraria
+## 🎯 Melhorias Futuras
 
-### Curto Prazo
-- [ ] Testes unitários (Auth, Tasks services)
-- [ ] Soft delete + recovery
-- [ ] Paginação (limit 20, offset)
-- [ ] HTTP-only cookies tokens
-- [ ] Validação datas futuras
+**Curto Prazo:**
+Testes unitários • Soft delete • Paginação • HTTP-only cookies • Validação datas
 
-### Médio Prazo
-- [ ] Audit log table
-- [ ] Structured logging (Winston/Pino)
-- [ ] Full-text search (PostgreSQL tsvector)
-- [ ] Task templates
-- [ ] Health checks todos services
-- [ ] E2E tests (Cypress)
+**Médio Prazo:**
+Audit log • Structured logging (Winston) • Full-text search • Task templates • Health checks • E2E tests
 
-### Longo Prazo
-- [ ] Team/Workspace multi-tenant
-- [ ] Activity feed
-- [ ] Email notifications
-- [ ] File attachments
-- [ ] Task dependencies (Gantt)
-- [ ] Mobile app (React Native)
-- [ ] Monitoring (Prometheus + Grafana)
+**Longo Prazo:**
+Multi-tenant workspaces • Activity feed • Email notifications • File attachments • Task dependencies • Mobile (React Native) • Monitoring (Prometheus)
 
 ---
 
@@ -337,23 +322,9 @@ curl http://localhost:15672/api/overview -u guest:guest
 
 ## 🔐 Segurança
 
-### ✅ Implementado
-- Bcrypt (10 rounds) - senhas
-- JWT stateless
-- Input validation (class-validator)
-- SQL injection prevention (TypeORM)
-- XSS prevention (React escaping)
-- CORS configurado
-- Rate limiting gateway
+**Implementado:** Bcrypt (10 rounds) • JWT stateless • Input validation • SQL injection prevention (TypeORM) • XSS prevention (React) • CORS • Rate limiting
 
-### ⚠️ Recomendações Produção
-- HTTPS/TLS obrigatório
-- JWT rotation
-- Secrets em vault
-- CORS origem específica
-- API keys inter-service
-- Helmet.js middleware
-- Request signing (HMAC)
+**Para Produção:** HTTPS/TLS • JWT rotation • Secrets em vault • CORS específico • API keys inter-service • Helmet.js • Request signing
 
 ---
 
@@ -362,15 +333,12 @@ curl http://localhost:15672/api/overview -u guest:guest
 ```
 fullstack-challenge/
 ├── apps/
-│   ├── web/                    # React
+│   ├── web/                    # React :3000
 │   ├── api-gateway/            # NestJS :3000
 │   ├── auth-service/           # NestJS :3001
 │   ├── tasks-service/          # NestJS :3002
 │   └── notifications-service/  # NestJS :3003
-├── packages/
-│   ├── types/                  # Shared DTOs
-│   ├── eslint-config/
-│   └── tsconfig/
+├── packages/ (types, eslint-config, tsconfig)
 ├── docker-compose.yml
 ├── turbo.json
 └── README.md
@@ -378,36 +346,16 @@ fullstack-challenge/
 
 ---
 
-## 🚀 Quick Commands
+## 🚀 Comandos Rápidos
 
 ```bash
-# Dev
-docker compose up -d
-
-# Build
-pnpm build
-
-# Logs
-docker compose logs -f
-
-# Reset
-docker compose down -v && docker compose up -d
-
-# Health
-curl http://localhost:3000/health
+docker compose up -d          # Dev
+pnpm build                     # Build
+docker compose logs -f         # Logs
+docker compose down -v         # Reset
+curl http://localhost:3000/health  # Health
 ```
 
 ---
 
-## 👨‍💻 Desenvolvido por
-
-**Caio Dias**
-
-- TypeScript/Node.js Backend
-- React Frontend
-- Docker & DevOps
-- Microservices
-
----
-
-**Last Updated:** Nov 2025 | **Version:** 1.0.0-MVP | **Dev Time:** ~29h
+**Desenvolvido por:** Caio Dias | **Nov 2025** | **v1.0.0-MVP** | **~29h**
